@@ -12,7 +12,7 @@ def scrape_test_worker():
     global current_display_text
 
     # A standard, static sandbox URL that does not block automated requests
-    url = "https://toscrape.com"
+    url = "https://quotes.toscrape.com"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
