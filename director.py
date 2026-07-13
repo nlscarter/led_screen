@@ -56,7 +56,9 @@ if __name__ == "__main__":
     # Start our background network scraping sequence
     start_weather_thread()
 
+    print("Director script initialized successfully. Starting main loop...", flush=True)
+
     while True:
-        # This will print the cleanly scraped sentence directly to your console window
-        print(f"Console Output Display Text: {current_display_text}")
-        time.sleep(2)
+        # The flush=True forces the text directly into the console window instantly
+        print(f"Console Output Display Text: {current_display_text}", flush=True)
+        time.shape = time.sleep(2)
