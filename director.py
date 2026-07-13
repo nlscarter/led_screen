@@ -1,16 +1,16 @@
-import tkinter as tk
+#!/usr/bin/env python3
 
-root = tk.Tk()
-root.title("LED Screen")
+import os
+import time
 
-label = tk.Label(
-    root,
-    text="Hello, World!",
-    font=("Arial", 48),
-    padx=40,
-    pady=40
-)
+# Clear the terminal
+os.system("clear")
 
-label.pack(expand=True)
+print("Hello World")
 
-root.mainloop()
+# Keep the program running so the console stays visible
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    pass
