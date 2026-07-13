@@ -6,8 +6,8 @@ import requests
 from bs4 import BeautifulSoup
 
 # Simulator targeted dimensions
-WIDTH = 64
-HEIGHT = 32
+WIDTH = 128
+HEIGHT = 64
 
 # Shared global variable for your scraped text string
 scraped_text = "Loading..."
