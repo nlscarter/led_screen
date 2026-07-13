@@ -53,6 +53,7 @@ def start_weather_thread():
 
 # --- Main LED execution driver ---
 if __name__ == "__main__":
+    print("starting_main")
     # Start our background network scraping sequence
     start_weather_thread()
 
