@@ -1,65 +1,102 @@
+import os
 import time
+import random
 import threading
 import requests
 from bs4 import BeautifulSoup
 
-# Shared global variable for your LED screen execution loop
-current_display_text = "Loading Test Page..."
+# Simulator targeted dimensions
+WIDTH = 64
+HEIGHT = 32
+
+# Shared global variable for your scraped text string
+scraped_text = "Loading..."
 
 
-def scrape_test_worker():
-    """Background task that pulls clean HTML from a scraper sandbox site."""
-    global current_display_text
-
-    # A standard, static sandbox URL that does not block automated requests
-    url = "https://quotes.toscrape.com"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
+def scrape_worker():
+    """Background thread that pulls text cleanly from a sandbox page."""
+    global scraped_text
+    url = "https://toscrape.com"
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     while True:
         try:
-            # Fetch the plain text HTML data
             response = requests.get(url, headers=headers, timeout=10)
-
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, "html.parser")
-
-                # Target the very first span element with the class name 'text'
                 quote_element = soup.select_one("span.text")
-
                 if quote_element:
-                    # Strip out quote marks and whitespace for a clean LED layout string
-                    raw_text = quote_element.get_text().strip().replace('"', '')
-                    current_display_text = raw_text
-                else:
-                    current_display_text = "Error: Element class 'text' not found."
-            else:
-                current_display_text = f"HTTP Error: {response.status_code}"
-
-        except Exception as e:
-            current_display_text = f"Connection Error: {e}"
-
-        # Wait 5 minutes (300 seconds) before parsing the test sandbox page again
-        time.sleep(300)
+                    scraped_text = quote_element.get_text().strip().replace('"', '')
+        except Exception:
+            pass  # Keep old text if connection drops momentarily
+        time.sleep(60)
 
 
-def start_weather_thread():
-    """Initialises and spins up the isolated background scraper thread."""
-    test_thread = threading.Thread(target=scrape_test_worker)
-    test_thread.daemon = True
-    test_thread.start()
+def generate_mock_rgb_frame():
+    """Simulates a 64x32 matrix frame buffer filled with colors."""
+    # Creates an array of 32 rows, each containing 64 items of (R, G, B) tuples.
+    # Color scale values: 0 (dark) to 5 (brightest) for simple ANSI color matching.
+    frame = []
+    for y in range(HEIGHT):
+        row = []
+        for x in range(WIDTH):
+            # Let's create a subtle moving color gradient for testing
+            r = int((x / WIDTH) * 5)
+            g = int((y / HEIGHT) * 5)
+            b = random.randint(0, 2)
+            row.append((r, g, b))
+        frame.append(row)
+    return frame
 
 
-# --- Main LED execution driver ---
+def draw_console_led_screen(matrix):
+    """Renders a 64x32 color matrix into a compact 64x16 character footprint."""
+    output = []
+    # Smoothly jumps cursor to top-left of terminal to prevent flickering
+    output.append("\033[H")
+
+    # Step through 2 pixel rows at a time (y changes by 2)
+    for y in range(0, HEIGHT, 2):
+        for x in range(WIDTH):
+            top_pixel = matrix[y][x]
+            bottom_pixel = matrix[y + 1][x]
+
+            # Map raw 0-5 RGB values into 256-color ANSI space
+            # Formula: 16 + (R * 36) + (G * 6) + B
+            top_color = 16 + (top_pixel[0] * 36) + (top_pixel[1] * 6) + top_pixel[2]
+            bot_color = 16 + (bottom_pixel[0] * 36) + (bottom_pixel[1] * 6) + bottom_pixel[2]
+
+            # \033[48;5;m sets background, \033[38;5;m sets foreground (text color)
+            # '▄' fills the bottom half of the character square with the foreground color
+            output.append(f"\033[48;5;{top_color}m\033[38;5;{bot_color}m▄")
+
+        # Reset color code modifiers at the end of every row
+        output.append("\033[0m\n")
+
+    print("".join(output), end="", flush=True)
+
+
 if __name__ == "__main__":
-    print("starting_main")
-    # Start our background network scraping sequence
-    start_weather_thread()
+    # Clear screen once at launch
+    os.system('clear' if os.name != 'nt' else 'cls')
 
-    print("Director script initialized successfully. Starting main loop...", flush=True)
+    # Spin up our web-scraping worker thread
+    t = threading.Thread(target=scrape_worker)
+    t.daemon = True
+    t.start()
+
+    print("Starting 64x32 LED Terminal Matrix...", flush=True)
+    time.sleep(1)
 
     while True:
-        # The flush=True forces the text directly into the console window instantly
-        print(f"Console Output Display Text: {current_display_text}", flush=True)
-        time.shape = time.sleep(2)
+        # 1. Fetch current frame graphics
+        frame_data = generate_mock_rgb_frame()
+
+        # 2. Render frame data directly to terminal monitor
+        draw_console_led_screen(frame_data)
+
+        # 3. Print the live scraped text status block just underneath the display
+        print(f"\033[0mScraped Text: {scraped_text[:60]}...", flush=True)
+
+        # Frame limit cap (approx 15 frames per second)
+        time.sleep(1)
