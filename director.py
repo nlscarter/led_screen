@@ -6,7 +6,11 @@ import time
 # Clear the terminal
 os.system("clear")
 
-print("Hello World")
+print("###################")
+print("#                 #")
+print("#   Hello World   #")
+print("#                 #")
+print("###################")
 
 # Keep the program running so the console stays visible
 try:
