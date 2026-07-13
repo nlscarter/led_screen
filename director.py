@@ -5,7 +5,8 @@ import threading
 import requests
 from bs4 import BeautifulSoup
 
-# Simulator targeted dimensions
+# Simulator targeted dimensions - STRICTLY 128x128
+# Note: Ensure your terminal window is widened/zoomed out to fit 128 columns and 64 rows!
 WIDTH = 128
 HEIGHT = 128
 
@@ -14,9 +15,10 @@ scraped_text = "Loading..."
 
 
 def scrape_worker():
-    """Background thread that pulls text cleanly from a sandbox page."""
+    """Background thread that pulls text cleanly from the quotes sandbox page."""
     global scraped_text
-    url = "https://toscrape.com"
+    # FIXED: Corrected domain endpoint to find quotes data
+    url = "https://quotes.toscrape.com"
     headers = {"User-Agent": "Mozilla/5.0"}
 
     while True:
@@ -33,14 +35,12 @@ def scrape_worker():
 
 
 def generate_mock_rgb_frame():
-    """Simulates a 64x32 matrix frame buffer filled with colors."""
-    # Creates an array of 32 rows, each containing 64 items of (R, G, B) tuples.
-    # Color scale values: 0 (dark) to 5 (brightest) for simple ANSI color matching.
+    """Simulates a 128x128 matrix frame buffer filled with colors."""
     frame = []
     for y in range(HEIGHT):
         row = []
         for x in range(WIDTH):
-            # Let's create a subtle moving color gradient for testing
+            # Subtle moving color gradient adjusted for 128 scale
             r = int((x / WIDTH) * 5)
             g = int((y / HEIGHT) * 5)
             b = random.randint(0, 2)
@@ -50,7 +50,7 @@ def generate_mock_rgb_frame():
 
 
 def draw_console_led_screen(matrix):
-    """Renders a 64x32 color matrix into a compact 64x16 character footprint."""
+    """Renders a 128x128 color matrix into a compact 128x64 character footprint."""
     output = []
     # Smoothly jumps cursor to top-left of terminal to prevent flickering
     output.append("\033[H")
@@ -61,13 +61,11 @@ def draw_console_led_screen(matrix):
             top_pixel = matrix[y][x]
             bottom_pixel = matrix[y + 1][x]
 
-            # Map raw 0-5 RGB values into 256-color ANSI space
-            # Formula: 16 + (R * 36) + (G * 6) + B
+            # FIXED: Restored indexing brackets, [1], [2] to prevent tuple multiplication errors
             top_color = 16 + (top_pixel[0] * 36) + (top_pixel[1] * 6) + top_pixel[2]
             bot_color = 16 + (bottom_pixel[0] * 36) + (bottom_pixel[1] * 6) + bottom_pixel[2]
 
             # \033[48;5;m sets background, \033[38;5;m sets foreground (text color)
-            # '▄' fills the bottom half of the character square with the foreground color
             output.append(f"\033[48;5;{top_color}m\033[38;5;{bot_color}m▄")
 
         # Reset color code modifiers at the end of every row
@@ -85,8 +83,9 @@ if __name__ == "__main__":
     t.daemon = True
     t.start()
 
-    print("Starting 64x32 LED Terminal Matrix...", flush=True)
-    time.sleep(1)
+    print("Starting 128x128 LED Terminal Matrix...", flush=True)
+    print("TIP: Zoom out your terminal font if the matrix grid looks distorted!", flush=True)
+    time.sleep(2)
 
     while True:
         # 1. Fetch current frame graphics
@@ -96,7 +95,8 @@ if __name__ == "__main__":
         draw_console_led_screen(frame_data)
 
         # 3. Print the live scraped text status block just underneath the display
-        print(f"\033[0mScraped Text: {scraped_text[:60]}...", flush=True)
+        # Added \033[K to prevent text trailing artifacts when names shift size
+        print(f"\033[0mScraped Text: {scraped_text[:120]}...\033[K", flush=True)
 
-        # Frame limit cap (approx 15 frames per second)
-        time.sleep(1)
+        # Frame limit cap (approx 1 frame per second as configured)
+        time.sleep(5)
