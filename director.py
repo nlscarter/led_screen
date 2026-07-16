@@ -5,6 +5,8 @@ import threading
 import requests
 from bs4 import BeautifulSoup
 
+#This is now from OLD LAPTOP
+
 # Simulator targeted dimensions - STRICTLY 128x128
 WIDTH = 128
 HEIGHT = 128
