@@ -33,6 +33,8 @@ def run_text_pattern():
     project_folder = pathlib.Path(__file__).parent
     font_folder = project_folder / "fonts"
     font_path = font_folder / "6x10.bdf"
+    font_path = str(font_path)
+
 
     # 3. Load the font file
     if not font.LoadFont(font_path):
