@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+import os
 import sys
 import time
-import os  # Make sure this is imported at the top of your file
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 
@@ -25,15 +25,17 @@ def run_text_pattern():
     width = canvas.width
     height = canvas.height
 
+    # 1. Initialize the font object first
+    font = graphics.Font()
 
-    # Dynamically find the directory where characters.py is running
+    # 2. Dynamically resolve the absolute font path
     script_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(script_dir, "fonts", "6x10.bdf")
 
+    # 3. Load the font file
     if not font.LoadFont(font_path):
         sys.stderr.write(f"Failed to load font from: {font_path}\n")
         sys.exit(1)
-
 
     # Define text colors
     white = graphics.Color(255, 255, 255)
@@ -48,21 +50,20 @@ def run_text_pattern():
         while True:
             canvas.Clear()
 
-            # Row 1: Y-coordinate represents the baseline of the text
-            # For 8-10px fonts, a baseline at Y=10 works perfectly
-            graphics.DrawText(canvas, font, 2, 10, white, "ROW 1: ABCD")
+            # Row 1 (Top) - Baseline at Y=12
+            graphics.DrawText(canvas, font, 2, 12, white, "ROW 1: ABCD")
 
-            # Row 2: Spaced down by ~12-14 pixels
-            graphics.DrawText(canvas, font, 2, 24, red, "ROW 2: 1234")
+            # Row 2 (Middle) - Baseline at Y=26
+            graphics.DrawText(canvas, font, 2, 26, red, "ROW 2: 1234")
 
-            # Row 3
-            graphics.DrawText(canvas, font, 2, 38, green, "ROW 3: EFGH")
+            # Row 3 (Bottom) - Baseline at Y=40
+            graphics.DrawText(canvas, font, 2, 40, green, "ROW 3: EFGH")
 
             canvas = matrix.SwapOnVSync(canvas)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
-        print("\nStopping test pattern. Clearing screen...")
+        print("\nStopping text pattern. Clearing screen...")
         canvas.Clear()
         matrix.SwapOnVSync(canvas)
 
