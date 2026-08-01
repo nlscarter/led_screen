@@ -15,7 +15,6 @@ def run_text_pattern():
     options.hardware_mapping = "regular"
     options.gpio_slowdown = 2
     options.drop_privileges = False
-    options.led_no_drop_privs = True
 
     try:
         matrix = RGBMatrix(options=options)
