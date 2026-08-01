@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import time
+import os  # Make sure this is imported at the top of your file
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 
@@ -24,13 +25,15 @@ def run_text_pattern():
     width = canvas.width
     height = canvas.height
 
-    # Load 8px high font (Make sure this path points to your actual font file)
-    font = graphics.Font()
-    font_path = "./fonts/6x10.bdf"  # 10px bounding box, but characters are ~8px high
-    # Alternative: Use "clshack.bdf" or "tom-thumb.bdf" (5x5) if you want even smaller
+
+    # Dynamically find the directory where characters.py is running
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    font_path = os.path.join(script_dir, "fonts", "6x10.bdf")
+
     if not font.LoadFont(font_path):
         sys.stderr.write(f"Failed to load font from: {font_path}\n")
         sys.exit(1)
+
 
     # Define text colors
     white = graphics.Color(255, 255, 255)
