@@ -3,6 +3,7 @@ import os
 import sys
 import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import pathlib
 
 
 def run_text_pattern():
@@ -29,8 +30,9 @@ def run_text_pattern():
     font = graphics.Font()
 
     # 2. Dynamically resolve the absolute font path
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_path = os.path.join(script_dir, "fonts", "6x10.bdf")
+    project_folder = pathlib.Path(__file__).parent
+    font_folder = project_folder / "fonts"
+    font_path = font_folder / "6x10.bdf"
 
     # 3. Load the font file
     if not font.LoadFont(font_path):
