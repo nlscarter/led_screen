@@ -26,7 +26,7 @@ def run_text_pattern():
 
     # Load 8px high font (Make sure this path points to your actual font file)
     font = graphics.Font()
-    font_path = "../../../../fonts/6x10.bdf"  # 10px bounding box, but characters are ~8px high
+    font_path = "./fonts/6x10.bdf"  # 10px bounding box, but characters are ~8px high
     # Alternative: Use "clshack.bdf" or "tom-thumb.bdf" (5x5) if you want even smaller
     if not font.LoadFont(font_path):
         sys.stderr.write(f"Failed to load font from: {font_path}\n")
