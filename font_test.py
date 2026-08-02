@@ -194,6 +194,8 @@ def run_text_pattern():
         HeaderRow(status="COLOUR1"),
         HeaderRow(status="PORSCHE"),
         HeaderRow(status="RAINBOW"),
+        HeaderRow(status="SC"),
+
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
