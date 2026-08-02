@@ -9,7 +9,7 @@ from drawing import draw_custom_char, draw_custom_string
 # ==============================================================================
 # ORIENTATION TOGGLE
 # ==============================================================================
-IS_PORTRAIT = True  # Set to True for Portrait (48x96), False for Landscape (96x48)
+IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 # ==============================================================================
 
 # Dynamically import the custom font dictionary and logo data
@@ -148,13 +148,13 @@ class TelemetryRow:
         max_h = max(max_h, h2)
 
         # Column 3: Driver Name (using the combined initialized string string)
-        w3, h3 = draw_custom_string(canvas, o_mgr, self.position.car.driver.name, start_x=current_x, start_y=y_pos, font_data=BIG_FONT)
-        current_x += w3
-        max_h = max(max_h, h3)
+        # w3, h3 = draw_custom_string(canvas, o_mgr, self.position.car.driver.name, start_x=current_x, start_y=y_pos, font_data=BIG_FONT)
+        # current_x += w3
+        # max_h = max(max_h, h3)
 
         # Column 4: Laps
-        w4, h4 = draw_custom_string(canvas, o_mgr, str(self.position.car.laps), start_x=current_x, start_y=y_pos, font_data=BIG_FONT)
-        max_h = max(max_h, h4)
+        # w4, h4 = draw_custom_string(canvas, o_mgr, str(self.position.car.laps), start_x=current_x, start_y=y_pos, font_data=BIG_FONT)
+        # max_h = max(max_h, h4)
 
         return max_h
 
