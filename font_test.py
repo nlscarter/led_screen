@@ -84,40 +84,128 @@ class HeaderRow:
         char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
         return char_h
 
+class Stint:
+    def __init__(self, tyre, laps, length =12):
+        self.tyre = tyre
+        self.laps = laps
+        self.complete = laps / length if (laps and length) else 0.0
+
+class Driver:
+    def __init__(self, initial, surname, country, stint1:Stint, stint2:Stint, stint3:Stint):
+        self.name = f'{initial}.{surname}'
+        self.country = country
+        self.stint1 = stint1
+        self.stint2 = stint2
+        self.stint3 = stint3
+
+class Car:
+    def __init__(self, number, team, driver:Driver, category, laps, time_delta):
+        self.category = category
+        self.driver = driver
+        self.team = team
+        self.laps = laps
+        self.time_delta = time_delta
+        self.number = number
+
+class Race:
+    def __init__(self, status):
+        self.time_left = '12:15:36' # change to time object
+
+
+class Position:
+    def __init__(self, num, car: Car):
+        self.num = num
+        self.car = car
+        # Generate the flattened dictionary upon initialization
+        self.dict = self.flatten_to_dict()
+
+    def flatten_to_dict(self):
+        car = self.car
+        driver = car.driver
+
+        return {
+            # Position Data
+            "position": self.num,
+
+            # Car Data
+            "car_number": car.number,
+            "team": car.team,
+            "category": car.category,
+            "car_laps": car.laps,
+            "time_delta": car.time_delta,
+
+            # Driver Data
+            "driver_name": driver.name,
+            "driver_country": driver.country,
+
+            # Stint 1 Data
+            "stint1_tyre": driver.stint1.tyre,
+            "stint1_laps": driver.stint1.laps,
+            "stint1_complete": driver.stint1.complete,
+
+            # Stint 2 Data
+            "stint2_tyre": driver.stint2.tyre,
+            "stint2_laps": driver.stint2.laps,
+            "stint2_complete": driver.stint2.complete,
+
+            # Stint 3 Data
+            "stint3_tyre": driver.stint3.tyre,
+            "stint3_laps": driver.stint3.laps,
+            "stint3_complete": driver.stint3.complete,
+        }
+
+soft = "S"
+hard = "H"
+medium = "M"
+position1 = Position(1,
+                     Car(34,
+                         "BMW",
+                         Driver("S",
+                                "Panish",
+                                "ESP",
+                                Stint(soft,12),
+                                Stint(medium,8),
+                                Stint(None, None)
+                                ),
+                         category='LMP2',
+                         laps=12,
+                         time_delta=None
+                         )
+                     )
+positions = [position1]
+print(position1.dict)
+
 
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
 
-    def __init__(self, position, team, driver, laps):
-        self.position = str(position)
-        self.team = str(team)
-        self.driver = str(driver)
-        self.laps = str(laps)
+    def __init__(self, positions: list[Position]):
+        # Extract the flat dictionary from the first position in the list
+        self.data = positions[0].dict
 
     def render(self, canvas, o_mgr, y_pos):
         """Draws data fields sequentially across the X axis, tracking both layout dimensions."""
-        current_x = 2
-        col_padding = 4 if o_mgr.portrait_mode else 10  # Cinch columns closer if screen is narrow
+        current_x = 0
         max_h = 0
 
-        # Column 1: Position
-        w1, h1 = draw_custom_string(canvas, o_mgr, self.position, start_x=current_x, start_y=y_pos,
+        # Column 1: Position (Mapped to flat key "position")
+        w1, h1 = draw_custom_string(canvas, o_mgr, str(self.data["position"]), start_x=current_x, start_y=y_pos,
                                     font_data=SMALL_FONT)
-        current_x += w1 + col_padding
+        current_x += w1
         max_h = max(max_h, h1)
 
-        # Column 2: Team Logo
-        w2, h2 = draw_custom_char(canvas, o_mgr, self.team, start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
-        current_x += w2 + col_padding
+        # Column 2: Team Logo (Mapped to flat key "team")
+        w2, h2 = draw_custom_char(canvas, o_mgr, self.data["team"], start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
+        current_x += w2
         max_h = max(max_h, h2)
 
-        # Column 3: Driver Name
-        w3, h3 = draw_custom_string(canvas, o_mgr, self.driver, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
-        current_x += w3 + col_padding
+        # Column 3: Driver Name (Mapped to flat key "driver_name")
+        w3, h3 = draw_custom_string(canvas, o_mgr, self.data["driver_name"], start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
+        current_x += w3
         max_h = max(max_h, h3)
 
-        # Column 4: Laps
-        w4, h4 = draw_custom_string(canvas, o_mgr, self.laps, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
+        # Column 4: Laps (Mapped to flat key "car_laps")
+        w4, h4 = draw_custom_string(canvas, o_mgr, str(self.data["car_laps"]), start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
         max_h = max(max_h, h4)
 
         return max_h
@@ -191,13 +279,15 @@ def run_text_pattern():
     o_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
     rows = [
-        HeaderRow(status="COLOUR1"),
-        HeaderRow(status="PORSCHE"),
-        HeaderRow(status="RAINBOW"),
         HeaderRow(status="SC"),
+        HeaderRow(status="PORSCHE"),
         HeaderRow(status="BMW"),
         HeaderRow(status="FERRARI"),
         HeaderRow(status="PEUGEOT"),
+        HeaderRow(status="ALPINE"),
+        HeaderRow(status="MCLAREN"),
+        HeaderRow(status="ALPINE"),
+        TelemetryRow(positions[0])
 
     ]
 
@@ -209,7 +299,7 @@ def run_text_pattern():
             canvas.Clear()
 
             current_y = 0
-            row_padding = 1  # Spacing between the 8px blocks
+            row_padding = 0  # Spacing between the 8px blocks
 
             for row in rows:
                 row_height = row.render(canvas, o_mgr, y_pos=current_y)
