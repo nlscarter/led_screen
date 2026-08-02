@@ -5,25 +5,96 @@ import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 import pathlib
 
-# Dynamically import the custom font dictionary
+# Dynamically import the custom font dictionary and logo data
 sys.path.append(str(pathlib.Path(__file__).parent / "fonts"))
 try:
-    from custom_font import FONT_DATA
+    from custom_font import FONT_DATA, LOGO_DATA
 except ImportError:
-    sys.stderr.write("Failed to import FONT_DATA from fonts/custom_font.py\n")
+    sys.stderr.write("Failed to import FONT_DATA or LOGO_DATA from fonts/custom_font.py\n")
     sys.exit(1)
 
+# Color map translating the 4-bit font value (0-15) to specific RGB tuples
+FONT_COLOR_MAP = {
+    0: (0, 0, 0),  # Transparent / Black
+    1: (255, 255, 255),  # White
+    2: (255, 0, 0),  # Red
+    3: (0, 255, 0),  # Green
+    4: (0, 0, 255),  # Blue
+    5: (255, 255, 0),  # Yellow
+    6: (0, 255, 255),  # Cyan
+    7: (255, 0, 255),  # Magenta
+    8: (255, 128, 0),  # Orange
+    9: (128, 0, 128),  # Purple
+    10: (0, 255, 128),  # Mint
+    11: (255, 128, 128),  # Light Red / Pink
+    12: (128, 255, 128),  # Light Green
+    13: (128, 128, 255),  # Light Blue
+    14: (192, 192, 192),  # Light Grey
+    15: (64, 64, 64),  # Dark Grey
+}
 
-def draw_custom_char(canvas, char, start_x, start_y, base_color):
+
+class TelemetryRow:
+    """Represents a static row of racing data aligned into columns."""
+
+    def __init__(self, position, team, driver, laps):
+        self.position = str(position)
+        self.team = str(team)  # Team key matching LOGO_DATA keys (e.g. 'RBR')
+        self.driver = str(driver)
+        self.laps = str(laps)
+
+    def render(self, canvas, y_pos):
+        """Draws the data fields at fixed X offsets, rendering the team as a logo."""
+        draw_custom_string(canvas, self.position, start_x=2, start_y=y_pos)
+
+        # Render the graphics-based logo from LOGO_DATA instead of text characters
+        draw_team_logo(canvas, self.team, start_x=20, start_y=y_pos)
+
+        # Adjusted driver column offset to accommodate the graphic logo boundaries cleanly
+        draw_custom_string(canvas, self.driver, start_x=45, start_y=y_pos)
+        draw_custom_string(canvas, self.laps, start_x=80, start_y=y_pos)
+
+
+def draw_team_logo(canvas, team_key, start_x, start_y):
     """
-    Renders a single 5x8 custom 4-bit character on the matrix canvas.
-    A character is a list of 5 integers, each packing 8 rows of 4-bit colour values.
+    Looks up a team asset in LOGO_DATA and renders its 4-bit pixel data array.
+    Falls back to rendering the string if the team key cannot be found.
     """
+    if team_key not in LOGO_DATA:
+        # Graceful fallback: text rendering if logo asset is absent
+        draw_custom_string(canvas, team_key, start_x, start_y)
+        return
+
+    logo_col_data = LOGO_DATA[team_key]
+    logo_width = len(logo_col_data)
+
+    for col_idx in range(logo_width):
+        packed_col = logo_col_data[col_idx]
+        x = start_x + col_idx
+
+        for row_idx in range(8):
+            y = start_y + row_idx
+
+            if y < 0 or y >= canvas.height:
+                continue
+
+            # Extract 4-bit value using MSB-first shifts
+            shift_amount = 28 - (row_idx * 4)
+            pixel_4bit = (packed_col >> shift_amount) & 0x0F
+
+            if pixel_4bit > 0:
+                r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
+                if 0 <= x < canvas.width:
+                    canvas.SetPixel(x, y, r, g, b)
+
+
+def draw_custom_char(canvas, char, start_x, start_y):
+    """Renders a single 5x8 custom 4-bit character on the matrix canvas."""
     if char not in FONT_DATA:
-        char = ' '  # Fallback to a space if character is missing
+        char = ' '
 
     if char == ' ':
-        return 5  # Width of a space character
+        return 5
 
     col_data = FONT_DATA[char]
 
@@ -31,37 +102,28 @@ def draw_custom_char(canvas, char, start_x, start_y, base_color):
         packed_col = col_data[col_idx]
         x = start_x + col_idx
 
-        # Draw all 8 rows for this column
         for row_idx in range(8):
             y = start_y + row_idx
 
-            # Skip drawing if the pixel goes out of vertical bounds
             if y < 0 or y >= canvas.height:
                 continue
 
-            # Extract 4-bit value using MSB-first shifts (Row 0 is bits 31-28)
             shift_amount = 28 - (row_idx * 4)
             pixel_4bit = (packed_col >> shift_amount) & 0x0F
 
             if pixel_4bit > 0:
-                # Scale the base color by the 4-bit brightness multiplier (0 to 1)
-                brightness = pixel_4bit / 15.0
-                r = int(base_color[0] * brightness)
-                g = int(base_color[1] * brightness)
-                b = int(base_color[2] * brightness)
-
-                # Draw the pixel only if it is horizontally within screen limits
+                r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
                 if 0 <= x < canvas.width:
                     canvas.SetPixel(x, y, r, g, b)
 
-    return 5  # Return character width
+    return 5
 
 
-def draw_custom_string(canvas, text, start_x, start_y, color, kerning=1):
+def draw_custom_string(canvas, text, start_x, start_y, kerning=1):
     """Renders an entire string using the custom 5x8 font."""
     current_x = start_x
     for char in text:
-        char_width = draw_custom_char(canvas, char, current_x, start_y, color)
+        char_width = draw_custom_char(canvas, char, current_x, start_y)
         current_x += char_width + kerning
 
 
@@ -85,51 +147,27 @@ def run_text_pattern():
     width = canvas.width
     height = canvas.height
 
-    # Define RGB tuples instead of graphics.Color objects for easier manipulation
-    white = (255, 255, 255)
-    red = (255, 0, 0)
-    green = (0, 255, 0)
+    # Data array with keys corresponding to LOGO_DATA
+    rows = [
+        TelemetryRow(position="1", team="RBR", driver="VER", laps="54"),
+        TelemetryRow(position="2", team="MCL", driver="NOR", laps="54"),
+        TelemetryRow(position="3", team="FER", driver="LEC", laps="53"),
+        TelemetryRow(position="4", team="MER", driver="HAM", laps="53"),
+        TelemetryRow(position="5", team="FER", driver="ALO", laps="52")
+    ]
 
-    row1_str = "ROW 1: ABCD"
-    row2_str = "ROW 2: 1234"
-    row3_str = "ROW 3: EFGH"
-
-    scroll_x = width
-
-    # Custom font metrics (5px width + 1px spacing spacing = 6px total footprint)
-    char_width = 5
-    kerning = 1
-    total_char_footprint = char_width + kerning
-
-    max_text_length = max(len(row1_str), len(row2_str), len(row3_str))
-    text_width_pixels = max_text_length * total_char_footprint
-
-    print(
-        f"Running scrolling custom font pattern on {width}x{height} matrix. Press Ctrl+C to stop."
-    )
+    print(f"Running static telemetry table with logo graphics on {width}x{height} matrix. Press Ctrl+C to stop.")
 
     try:
         while True:
             canvas.Clear()
 
-            # Note: Top-left rendering means Y coordinates are the top of the characters,
-            # instead of the font baseline coordinates used by BDF rendering.
-            # Row 1 (Top) - Top edge at Y=4
-            draw_custom_string(canvas, row1_str, scroll_x, 4, white, kerning)
-
-            # Row 2 (Middle) - Top edge at Y=18
-            draw_custom_string(canvas, row2_str, scroll_x, 18, red, kerning)
-
-            # Row 3 (Bottom) - Top edge at Y=32
-            draw_custom_string(canvas, row3_str, scroll_x, 32, green, kerning)
-
-            scroll_x -= 1
-
-            if scroll_x < -text_width_pixels:
-                scroll_x = width
+            start_y = 2
+            for idx, row in enumerate(rows):
+                row.render(canvas, y_pos=start_y + (idx * 9))
 
             canvas = matrix.SwapOnVSync(canvas)
-            time.sleep(0.03)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
         print("\nStopping text pattern. Clearing screen...")
