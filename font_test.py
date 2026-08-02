@@ -196,6 +196,8 @@ def run_text_pattern():
 
     rows = [
         HeaderRow(status="COLOUR1"),
+        HeaderRow(status="PORSCHE"),
+
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
@@ -205,8 +207,8 @@ def run_text_pattern():
         while True:
             canvas.Clear()
 
-            current_y = 2
-            row_padding = 2
+            current_y = 0
+            row_padding = 0
 
             for row in rows:
                 row_height = row.render(canvas, o_mgr, y_pos=current_y)
