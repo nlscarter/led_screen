@@ -8,7 +8,7 @@ import pathlib
 # Dynamically import the custom font dictionary and logo data
 sys.path.append(str(pathlib.Path(__file__).parent / "fonts"))
 try:
-    from custom_font import FONT_DATA, LOGO_DATA
+    from custom_font import BIG_FONT, LOGO_DATA, SMALL_FONT
 except ImportError:
     sys.stderr.write("Failed to import FONT_DATA or LOGO_DATA from fonts/custom_font.py\n")
     sys.exit(1)
@@ -37,13 +37,14 @@ class HeaderRow:
     """Heading of page"""
     def __init__(self, status):
         self.status = status
-        self.time = "MER"
+        self.time = "SC"
         self.heading = "FER"
 
     def render(self, canvas, y_pos):
-        draw_team_logo(canvas, self.status, start_x = 1, start_y=y_pos)
-        draw_team_logo(canvas, self.heading, start_x= 10, start_y=y_pos)
-        draw_team_logo(canvas, self.time, start_x=20, start_y=y_pos)
+        # Fixed: Changed draw_team_logo to draw_custom_char and passed LOGO_DATA
+        draw_custom_char(canvas, self.status, start_x=1, start_y=y_pos, font_data=LOGO_DATA)
+        draw_custom_char(canvas, self.heading, start_x=10, start_y=y_pos, font_data=LOGO_DATA)
+        draw_custom_char(canvas, self.time, start_x=20, start_y=y_pos, font_data=LOGO_DATA)
 
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
@@ -56,85 +57,61 @@ class TelemetryRow:
 
     def render(self, canvas, y_pos):
         """Draws the data fields at fixed X offsets, rendering the team as a logo."""
-        draw_custom_string(canvas, self.position, start_x=2, start_y=y_pos)
+        draw_custom_string(canvas, self.position, start_x=2, start_y=y_pos, font_data=SMALL_FONT)
 
-        # Render the graphics-based logo from LOGO_DATA instead of text characters
-        draw_team_logo(canvas, self.team, start_x=20, start_y=y_pos)
+        # Fixed: Passed self.team instead of the hardcoded "SC" string
+        draw_custom_char(canvas, self.team, start_x=20, start_y=y_pos, font_data=LOGO_DATA)
 
         # Adjusted driver column offset to accommodate the graphic logo boundaries cleanly
-        draw_custom_string(canvas, self.driver, start_x=45, start_y=y_pos)
-        draw_custom_string(canvas, self.laps, start_x=80, start_y=y_pos)
+        draw_custom_string(canvas, self.driver, start_x=45, start_y=y_pos, font_data=SMALL_FONT)
+        draw_custom_string(canvas, self.laps, start_x=80, start_y=y_pos, font_data=SMALL_FONT)
 
-
-def draw_team_logo(canvas, team_key, start_x, start_y):
-    """
-    Looks up a team asset in LOGO_DATA and renders its 4-bit pixel data array.
-    Falls back to rendering the string if the team key cannot be found.
-    """
-    if team_key not in LOGO_DATA:
-        # Graceful fallback: text rendering if logo asset is absent
-        draw_custom_string(canvas, team_key, start_x, start_y)
-        return
-
-    logo_col_data = LOGO_DATA[team_key]
-    logo_width = len(logo_col_data)
-
-    for col_idx in range(logo_width):
-        packed_col = logo_col_data[col_idx]
-        x = start_x + col_idx
-
-        for row_idx in range(8):
-            y = start_y + row_idx
-
-            if y < 0 or y >= canvas.height:
-                continue
-
-            # Extract 4-bit value using MSB-first shifts
-            shift_amount = 28 - (row_idx * 4)
-            pixel_4bit = (packed_col >> shift_amount) & 0x0F
-
-            if pixel_4bit > 0:
-                r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
-                if 0 <= x < canvas.width:
-                    canvas.SetPixel(x, y, r, g, b)
-
-
-def draw_custom_char(canvas, char, start_x, start_y):
-    """Renders a single 5x8 custom 4-bit character on the matrix canvas."""
-    if char not in FONT_DATA:
+def draw_custom_char(canvas, char, start_x, start_y, font_data):
+    """Renders a single variable-width custom character on the matrix canvas using decimal row data."""
+    if char not in font_data:
         char = ' '
 
+    # Handle space character width (defaulting to 5 or adapting to font style)
     if char == ' ':
         return 5
 
-    col_data = FONT_DATA[char]
+    col_data = font_data[char]
+    char_width = len(col_data)  # Dynamically determine the width of the character
 
-    for col_idx in range(5):
+    for col_idx in range(char_width):
         packed_col = col_data[col_idx]
         x = start_x + col_idx
 
-        for row_idx in range(8):
+        # Skip rendering this column if it falls completely off the left/right canvas edges
+        if x < 0 or x >= canvas.width:
+            continue
+
+        # Extract rows. Since we don't know the exact row height from a single decimal,
+        # we loop until the remaining packed bits are exhausted (or standard max height)
+        row_idx = 0
+        while packed_col > 0:
             y = start_y + row_idx
 
-            if y < 0 or y >= canvas.height:
-                continue
+            # Extract the lowest 4 bits (the active row's pixel value)
+            pixel_4bit = packed_col & 0x0F
 
-            shift_amount = 28 - (row_idx * 4)
-            pixel_4bit = (packed_col >> shift_amount) & 0x0F
-
-            if pixel_4bit > 0:
+            if pixel_4bit > 0 and 0 <= y < canvas.height:
                 r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
-                if 0 <= x < canvas.width:
-                    canvas.SetPixel(x, y, r, g, b)
+                canvas.SetPixel(x, y, r, g, b)
 
-    return 5
+            # Shift right by 4 bits to process the next row down
+            packed_col >>= 4
+            row_idx += 1
+
+    return char_width
 
 
-def draw_custom_string(canvas, text, start_x, start_y, kerning=1):
-    """Renders an entire string using the custom 5x8 font."""
+def draw_custom_string(canvas, text, start_x, start_y, font_data=SMALL_FONT, kerning=1):
+    """Renders an entire string using the custom variable width font."""
     current_x = start_x
     for char in text:
-        char_width = draw_custom_char(canvas, char, current_x, start_y)
+        # Fixed: Added the font_data argument here
+        char_width = draw_custom_char(canvas, char, current_x, start_y, font_data)
         current_x += char_width + kerning
 
 
