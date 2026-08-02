@@ -81,7 +81,7 @@ class HeaderRow:
         self.status = status
 
     def render(self, canvas, o_mgr, y_pos):
-        char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
+        char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=0, start_y=y_pos, font_data=LOGO_DATA)
         return char_h
 
 
@@ -197,6 +197,7 @@ def run_text_pattern():
     rows = [
         HeaderRow(status="COLOUR1"),
         HeaderRow(status="PORSCHE"),
+        HeaderRow(status="RAINBOW"),
 
     ]
 
