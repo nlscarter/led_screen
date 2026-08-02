@@ -194,7 +194,7 @@ def run_text_pattern():
     o_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
     rows = [
-        HeaderRow(status="SC"),
+        HeaderRow(status="COLOUR1"),
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
