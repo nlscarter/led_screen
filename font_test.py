@@ -15,7 +15,7 @@ IS_PORTRAIT = True  # Set to True for Portrait (48x96), False for Landscape (96x
 # Dynamically import the custom font dictionary and logo data
 sys.path.append(str(pathlib.Path(__file__).parent / "fonts"))
 try:
-    from custom_font import BIG_FONT, LOGO_DATA, SMALL_FONT
+    from custom_font import BIG_FONT, LOGO_DATA
 except ImportError:
     sys.stderr.write("Failed to import FONT_DATA or LOGO_DATA from fonts/custom_font.py\n")
     sys.exit(1)
