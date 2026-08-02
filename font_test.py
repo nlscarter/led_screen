@@ -195,12 +195,7 @@ def run_text_pattern():
     o_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
     rows = [
-        HeaderRow(status="SC"),
-        TelemetryRow(position="1", team="RBR", driver="VER", laps="54"),
-        TelemetryRow(position="2", team="MCL", driver="NOR", laps="54"),
-        TelemetryRow(position="3", team="FER", driver="LEC", laps="53"),
-        TelemetryRow(position="4", team="MER", driver="HAM", laps="53"),
-        TelemetryRow(position="5", team="FER", driver="ALO", laps="52")
+        HeaderRow(status="COLOUR1"),
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
