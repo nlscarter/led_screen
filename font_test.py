@@ -124,9 +124,9 @@ positions = [position1]
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
 
-    def __init__(self, positions: list[Position]):
+    def __init__(self, position:Position):
         # Store the first Position object directly instead of a dictionary
-        self.position = positions[0]
+        self.position = position
 
     def render(self, canvas, o_mgr, y_pos):
         """Draws data fields sequentially across the X axis, tracking both layout dimensions."""
