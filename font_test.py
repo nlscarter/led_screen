@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import os
 import sys
 import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 import pathlib
+
+from setup import FONT_COLOR_MAP
 
 # ==============================================================================
 # ORIENTATION TOGGLE
@@ -20,24 +21,6 @@ except ImportError:
     sys.exit(1)
 
 # Color map translating the 4-bit font value (0-15) to specific RGB tuples
-FONT_COLOR_MAP = {
-    0: (0, 0, 0),  # Black (Unused/Empty space background)
-    1: (255, 0, 0),  # Red
-    2: (0, 128, 0),  # Green
-    3: (123, 61, 0),  # Brown
-    4: (0, 0, 128),  # Dark Blue / Navy
-    5: (128, 0, 0),  # Dark Red / Maroon
-    6: (187, 227, 61),  # Lime
-    7: (50, 50, 50),  # Dark Charcoal / Off-Black
-    8: (192, 192, 192),  # Gray
-    9: (255, 90, 45),  # Coral / Pinkish Red
-    10: (0, 255, 128),  # Light Mint Green
-    11: (255, 255, 0),  # Pale Yellow
-    12: (30, 30, 255),  # Light Blue / Lavender
-    13: (128, 255, 255),  # Light Cyan / Sky Blue
-    14: (255, 128, 0),  # Orange
-    15: (255, 255, 255),  # White
-}
 
 
 class OrientationManager:
@@ -117,42 +100,6 @@ class Position:
         self.num = num
         self.car = car
         # Generate the flattened dictionary upon initialization
-        self.dict = self.flatten_to_dict()
-
-    def flatten_to_dict(self):
-        car = self.car
-        driver = car.driver
-
-        return {
-            # Position Data
-            "position": self.num,
-
-            # Car Data
-            "car_number": car.number,
-            "team": car.team,
-            "category": car.category,
-            "car_laps": car.laps,
-            "time_delta": car.time_delta,
-
-            # Driver Data
-            "driver_name": driver.name,
-            "driver_country": driver.country,
-
-            # Stint 1 Data
-            "stint1_tyre": driver.stint1.tyre,
-            "stint1_laps": driver.stint1.laps,
-            "stint1_complete": driver.stint1.complete,
-
-            # Stint 2 Data
-            "stint2_tyre": driver.stint2.tyre,
-            "stint2_laps": driver.stint2.laps,
-            "stint2_complete": driver.stint2.complete,
-
-            # Stint 3 Data
-            "stint3_tyre": driver.stint3.tyre,
-            "stint3_laps": driver.stint3.laps,
-            "stint3_complete": driver.stint3.complete,
-        }
 
 soft = "S"
 hard = "H"
@@ -173,43 +120,40 @@ position1 = Position(1,
                          )
                      )
 positions = [position1]
-print(position1.dict)
-
 
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
 
     def __init__(self, positions: list[Position]):
-        # Extract the flat dictionary from the first position in the list
-        self.data = positions[0].dict
+        # Store the first Position object directly instead of a dictionary
+        self.position = positions[0]
 
     def render(self, canvas, o_mgr, y_pos):
         """Draws data fields sequentially across the X axis, tracking both layout dimensions."""
         current_x = 0
         max_h = 0
 
-        # Column 1: Position (Mapped to flat key "position")
-        w1, h1 = draw_custom_string(canvas, o_mgr, str(self.data["position"]), start_x=current_x, start_y=y_pos,
+        # Column 1: Position (num attribute from Position class)
+        w1, h1 = draw_custom_string(canvas, o_mgr, str(self.position.num), start_x=current_x, start_y=y_pos,
                                     font_data=SMALL_FONT)
         current_x += w1
         max_h = max(max_h, h1)
 
-        # Column 2: Team Logo (Mapped to flat key "team")
-        w2, h2 = draw_custom_char(canvas, o_mgr, self.data["team"], start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
+        # Column 2: Team Logo (team attribute from Car class)
+        w2, h2 = draw_custom_char(canvas, o_mgr, self.position.car.team, start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
         current_x += w2
         max_h = max(max_h, h2)
 
-        # Column 3: Driver Name (Mapped to flat key "driver_name")
-        w3, h3 = draw_custom_string(canvas, o_mgr, self.data["driver_name"], start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
+        # Column 3: Driver Name (last_name attribute from Driver class)
+        w3, h3 = draw_custom_string(canvas, o_mgr, self.position.car.driver.last_name, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
         current_x += w3
         max_h = max(max_h, h3)
 
-        # Column 4: Laps (Mapped to flat key "car_laps")
-        w4, h4 = draw_custom_string(canvas, o_mgr, str(self.data["car_laps"]), start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
+        # Column 4: Laps (laps attribute from Car class)
+        w4, h4 = draw_custom_string(canvas, o_mgr, str(self.position.car.laps), start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
         max_h = max(max_h, h4)
 
         return max_h
-
 
 def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
     """Renders a single variable character using virtual layout dimensions."""
