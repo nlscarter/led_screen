@@ -4,7 +4,7 @@ import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 import pathlib
 
-from setup import FONT_COLOR_MAP
+from drawing import draw_custom_char, draw_custom_string
 
 # ==============================================================================
 # ORIENTATION TOGGLE
@@ -145,7 +145,7 @@ class TelemetryRow:
         max_h = max(max_h, h2)
 
         # Column 3: Driver Name (last_name attribute from Driver class)
-        w3, h3 = draw_custom_string(canvas, o_mgr, self.position.car.driver.last_name, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
+        w3, h3 = draw_custom_string(canvas, o_mgr, self.position.car.driver.name, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
         current_x += w3
         max_h = max(max_h, h3)
 
@@ -154,53 +154,6 @@ class TelemetryRow:
         max_h = max(max_h, h4)
 
         return max_h
-
-def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
-    """Renders a single variable character using virtual layout dimensions."""
-    if char not in font_data:
-        char = ' '
-
-    if char == ' ':
-        return 5, 8
-
-    col_data = font_data[char]
-    char_width = len(col_data)
-
-    for col_idx in range(char_width):
-        packed_col = col_data[col_idx]
-        x = start_x + col_idx
-
-        if x < 0 or x >= o_mgr.width:
-            continue
-
-        temp_col = packed_col
-        for row_idx in range(8):
-            y = start_y + row_idx
-            pixel_4bit = temp_col & 0x0F
-
-            if pixel_4bit > 0 and 0 <= y < o_mgr.height:
-                r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
-                o_mgr.set_pixel(canvas, x, y, r, g, b)
-
-            temp_col >>= 4
-
-    # Locked: Height is now directly returned as a static value of 8
-    return char_width, 8
-
-
-def draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data=SMALL_FONT, kerning=1):
-    """Renders an entire string, tracking cumulative widths and maximum element heights."""
-    current_x = start_x
-    max_string_height = 0
-
-    for char in text:
-        char_width, char_height = draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data)
-        current_x += char_width + kerning
-        if char_height > max_string_height:
-            max_string_height = char_height
-
-    total_width = current_x - start_x
-    return total_width, max_string_height
 
 
 def run_text_pattern():
