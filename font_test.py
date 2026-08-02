@@ -37,8 +37,8 @@ class HeaderRow:
     """Heading of page"""
     def __init__(self, status):
         self.status = status
-        self.time = time.time()
-        self.heading = "rolex"
+        self.time = "MER"
+        self.heading = "FER"
 
     def render(self, canvas, start_x, y_pos):
         draw_custom_char(canvas, self.status, start_x = 1, start_y=y_pos)
