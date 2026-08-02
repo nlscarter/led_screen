@@ -8,7 +8,7 @@ import pathlib
 # ==============================================================================
 # ORIENTATION TOGGLE
 # ==============================================================================
-IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
+IS_PORTRAIT = True  # Set to True for Portrait (48x96), False for Landscape (96x48)
 # ==============================================================================
 
 # Dynamically import the custom font dictionary and logo data
@@ -82,7 +82,7 @@ class HeaderRow:
 
     def render(self, canvas, o_mgr, y_pos):
         char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
-        return char_h
+        return char_w, char_h
 
 
 class TelemetryRow:
@@ -159,7 +159,7 @@ def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
     return char_width, max_char_height
 
 
-def draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data=SMALL_FONT, kerning=1):
+def draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data=BIG_FONT, kerning=1):
     """Renders an entire string, tracking cumulative widths and maximum element heights."""
     current_x = start_x
     max_string_height = 0
@@ -195,11 +195,6 @@ def run_text_pattern():
 
     rows = [
         HeaderRow(status="SC"),
-        TelemetryRow(position="1", team="RBR", driver="VER", laps="54"),
-        TelemetryRow(position="2", team="MCL", driver="NOR", laps="54"),
-        TelemetryRow(position="3", team="FER", driver="LEC", laps="53"),
-        TelemetryRow(position="4", team="MER", driver="HAM", laps="53"),
-        TelemetryRow(position="5", team="FER", driver="ALO", laps="52")
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
