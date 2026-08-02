@@ -81,7 +81,7 @@ class HeaderRow:
         self.status = status
 
     def render(self, canvas, o_mgr, y_pos):
-        char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=0, start_y=y_pos, font_data=LOGO_DATA)
+        char_w, char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
         return char_h
 
 
@@ -120,7 +120,6 @@ class TelemetryRow:
         w4, h4 = draw_custom_string(canvas, o_mgr, self.laps, start_x=current_x, start_y=y_pos, font_data=SMALL_FONT)
         max_h = max(max_h, h4)
 
-        # Fixed: Explicitly returns just the largest integer height value, not a tuple wrapper
         return max_h
 
 
@@ -130,11 +129,10 @@ def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
         char = ' '
 
     if char == ' ':
-        return 5, 0
+        return 5, 8
 
     col_data = font_data[char]
     char_width = len(col_data)
-    max_char_height = 0
 
     for col_idx in range(char_width):
         packed_col = col_data[col_idx]
@@ -143,21 +141,19 @@ def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
         if x < 0 or x >= o_mgr.width:
             continue
 
-        row_idx = 0
-        while packed_col > 0:
+        temp_col = packed_col
+        for row_idx in range(8):
             y = start_y + row_idx
-            pixel_4bit = packed_col & 0x0F
+            pixel_4bit = temp_col & 0x0F
 
             if pixel_4bit > 0 and 0 <= y < o_mgr.height:
                 r, g, b = FONT_COLOR_MAP.get(pixel_4bit, (255, 255, 255))
                 o_mgr.set_pixel(canvas, x, y, r, g, b)
 
-            packed_col >>= 4
-            row_idx += 1
-            if row_idx > max_char_height:
-                max_char_height = row_idx
+            temp_col >>= 4
 
-    return char_width, max_char_height
+    # Locked: Height is now directly returned as a static value of 8
+    return char_width, 8
 
 
 def draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data=SMALL_FONT, kerning=1):
@@ -198,7 +194,6 @@ def run_text_pattern():
         HeaderRow(status="COLOUR1"),
         HeaderRow(status="PORSCHE"),
         HeaderRow(status="RAINBOW"),
-
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
@@ -209,7 +204,7 @@ def run_text_pattern():
             canvas.Clear()
 
             current_y = 0
-            row_padding = 0
+            row_padding = 1  # Spacing between the 8px blocks
 
             for row in rows:
                 row_height = row.render(canvas, o_mgr, y_pos=current_y)
