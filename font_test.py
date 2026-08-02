@@ -27,13 +27,13 @@ FONT_COLOR_MAP = {
     3: (123, 61, 0),  # Brown
     4: (0, 0, 128),  # Dark Blue / Navy
     5: (128, 0, 0),  # Dark Red / Maroon
-    6: (0, 128, 128),  # Teal / Cyan
+    6: (187, 227, 61),  # Lime
     7: (50, 50, 50),  # Dark Charcoal / Off-Black
-    8: (128, 128, 128),  # Gray
-    9: (255, 0, 128),  # Coral / Pinkish Red
+    8: (192, 192, 192),  # Gray
+    9: (255, 90, 45),  # Coral / Pinkish Red
     10: (0, 255, 128),  # Light Mint Green
-    11: (255, 255, 128),  # Pale Yellow
-    12: (128, 128, 255),  # Light Blue / Lavender
+    11: (255, 255, 0),  # Pale Yellow
+    12: (30, 30, 255),  # Light Blue / Lavender
     13: (128, 255, 255),  # Light Cyan / Sky Blue
     14: (255, 128, 0),  # Orange
     15: (255, 255, 255),  # White
@@ -65,9 +65,9 @@ class OrientationManager:
             return
 
         if self.portrait_mode:
-            # 90-degree counter-clockwise rotation to flip landscape into portrait
+            # FIX: Properly maps coordinates for a 90-degree counter-clockwise rotation
             phys_x = y
-            phys_y = self.hw_height - 1 - x
+            phys_y = x
             canvas.SetPixel(phys_x, phys_y, r, g, b)
         else:
             # Standard direct 1:1 mapping
