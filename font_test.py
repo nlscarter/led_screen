@@ -8,7 +8,7 @@ import pathlib
 # ==============================================================================
 # ORIENTATION TOGGLE
 # ==============================================================================
-IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
+IS_PORTRAIT = True  # Set to True for Portrait (48x96), False for Landscape (96x48)
 # ==============================================================================
 
 # Dynamically import the custom font dictionary and logo data
@@ -195,6 +195,9 @@ def run_text_pattern():
         HeaderRow(status="PORSCHE"),
         HeaderRow(status="RAINBOW"),
         HeaderRow(status="SC"),
+        HeaderRow(status="BMW"),
+        HeaderRow(status="FERRARI"),
+        HeaderRow(status="PEUGEOT"),
 
     ]
 
