@@ -40,10 +40,10 @@ class HeaderRow:
         self.time = "MER"
         self.heading = "FER"
 
-    def render(self, canvas, start_x, y_pos):
-        draw_custom_char(canvas, self.status, start_x = 1, start_y=y_pos)
-        draw_custom_char(canvas, self.heading, start_x= 10, start_y=y_pos)
-        draw_custom_char(canvas, self.time, start_x=20, start_y=y_pos)
+    def render(self, canvas, y_pos):
+        draw_team_logo(canvas, self.status, start_x = 1, start_y=y_pos)
+        draw_team_logo(canvas, self.heading, start_x= 10, start_y=y_pos)
+        draw_team_logo(canvas, self.time, start_x=20, start_y=y_pos)
 
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
