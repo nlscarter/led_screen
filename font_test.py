@@ -33,6 +33,17 @@ FONT_COLOR_MAP = {
     15: (64, 64, 64),  # Dark Grey
 }
 
+class HeaderRow:
+    """Heading of page"""
+    def __init__(self, status):
+        self.status = status
+        self.time = time.time()
+        self.heading = "rolex"
+
+    def render(self, canvas, start_x, y_pos):
+        draw_custom_char(canvas, self.status, start_x = 1, start_y=y_pos)
+        draw_custom_char(canvas, self.heading, start_x= 10, start_y=y_pos)
+        draw_custom_char(canvas, self.time, start_x=20, start_y=y_pos)
 
 class TelemetryRow:
     """Represents a static row of racing data aligned into columns."""
@@ -149,6 +160,7 @@ def run_text_pattern():
 
     # Data array with keys corresponding to LOGO_DATA
     rows = [
+        HeaderRow(status="RBR"),
         TelemetryRow(position="1", team="RBR", driver="VER", laps="54"),
         TelemetryRow(position="2", team="MCL", driver="NOR", laps="54"),
         TelemetryRow(position="3", team="FER", driver="LEC", laps="53"),
