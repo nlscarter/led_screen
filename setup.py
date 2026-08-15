@@ -7,8 +7,8 @@ FONT_COLOR_MAP = {
     5: (128, 0, 0),  # Dark Red / Maroon
     6: (187, 227, 61),  # Lime
     7: (50, 50, 50),  # Dark Charcoal / Off-Black
-    8: (192, 192, 192),  # Gray
-    9: (255, 90, 45),  # Coral / Pinkish Red
+    8: (100, 100, 100),  # Gray
+    9: (200, 90, 45),  # Coral / Pinkish Red
     10: (0, 255, 128),  # Light Mint Green
     11: (255, 255, 0),  # Pale Yellow
     12: (30, 30, 255),  # Light Blue / Lavender
