@@ -73,7 +73,7 @@ def run_text_pattern():
     orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
     rows = [
-        TestRow(status="TOYOTA")    ]
+        TestRow(status="TOYOTA", country="JAP")    ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
     print(f"Running layout engine in {mode_str} mode. Press Ctrl+C to stop.")
