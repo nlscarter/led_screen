@@ -23,7 +23,7 @@ def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
         temp_col = packed_col
         for row_idx in range(10):
             # Invert the row rendering order
-            y = start_y + (9 - row_idx)
+            y = start_y - row_idx
             pixel_4bit = temp_col & 0x0F
 
             if pixel_4bit > 0 and 0 <= y < o_mgr.height:

@@ -40,13 +40,16 @@ class OrientationManager:
 class TestRow:
     """Heading of page"""
 
-    def __init__(self, status):
+    def __init__(self, status, country):
         self.status = status
+        self.country = country
 
     def render(self, canvas, o_mgr, y_pos):
         logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
-        flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, "JAP", start_x=20, start_y=y_pos, font_data=FLAG_DATA)
-        max_char_h = max(flag_char_h, logo_char_h)
+        flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos, font_data=FLAG_DATA)
+        t_char_w, t_char_h = draw_custom_char(canvas, o_mgr, "COLOUR1", start_x=35, start_y=y_pos, font_data=FLAG_DATA)
+
+        max_char_h = max(flag_char_h, logo_char_h, t_char_h)
         return max_char_h
 
 
@@ -79,7 +82,7 @@ def run_text_pattern():
         while True:
             canvas.Clear()
 
-            current_y = 0
+            current_y = 10
             row_padding = 0
 
             for row in rows:
