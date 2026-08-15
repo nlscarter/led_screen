@@ -59,8 +59,13 @@ def run_text_pattern():
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = "regular"
-    options.gpio_slowdown = 2
-    options.drop_privileges = False
+
+    # ─── ANTI-FLICKER & PERFORMANCE OPTIMISATIONS ───
+    options.gpio_slowdown = 4  # Higher value handles RPi4 high-speed GPIO timing
+    options.drop_privileges = False  # Keep root privileges for hardware timing accuracy
+    options.pwm_bits = 11  # Lowers CPU overhead slightly to reduce flicker
+    options.brightness = 100  # Caps maximum brightness to reduce power draw/flicker
+    options.scan_mode = 0  # 0 = Progressive scan, helps reduce sync flicker
 
     try:
         matrix = RGBMatrix(options=options)
