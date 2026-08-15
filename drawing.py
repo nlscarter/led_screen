@@ -1,4 +1,5 @@
 from setup import FONT_COLOR_MAP
+from fonts.custom_font import SMALL_FONT
 
 
 def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
