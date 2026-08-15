@@ -85,7 +85,7 @@ def run_text_pattern():
         while True:
             canvas.Clear()
 
-            current_y = 10
+            current_y = 8
             row_padding = 0
 
             for row in rows:
