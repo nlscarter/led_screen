@@ -78,7 +78,7 @@ def run_text_pattern():
 
     rows = [
         TestRow(status="FERRARI", country="GBR"),
-        TestRow(status="ROL", country="JAP"),
+        TestRow(status="PORSCHE", country="JAP"),
         TestRow(status="BMW", country="ITY"),
         TestRow(status="COLOUR1", country="JAP"),
     ]
