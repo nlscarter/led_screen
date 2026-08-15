@@ -30,20 +30,18 @@ def draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data):
 
             temp_col >>= 4
 
-    # Locked: Height is now directly returned as a static value of 8
-    return char_width, 8
+    # Locked: Height is now directly returned as a static value of 10
+    return char_width, 10
 
 
 def draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data=SMALL_FONT, kerning=1):
     """Renders an entire string, tracking cumulative widths and maximum element heights."""
     current_x = start_x
-    max_string_height = 0
 
     for char in text:
         char_width, char_height = draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data)
         current_x += char_width + kerning
-        if char_height > max_string_height:
-            max_string_height = char_height
+
 
     total_width = current_x - start_x
-    return total_width, max_string_height
+    return total_width, 10
