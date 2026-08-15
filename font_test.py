@@ -47,9 +47,8 @@ class TestRow:
     def render(self, canvas, o_mgr, y_pos):
         logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
         flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos, font_data=FLAG_DATA)
-        t_char_w, t_char_h = draw_custom_char(canvas, o_mgr, "COLOUR1", start_x=35, start_y=y_pos, font_data=FLAG_DATA)
 
-        max_char_h = max(flag_char_h, logo_char_h, t_char_h)
+        max_char_h = max(flag_char_h, logo_char_h)
         return max_char_h
 
 
@@ -73,7 +72,7 @@ def run_text_pattern():
     orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
     rows = [
-        TestRow(status="TOYOTA", country="JAP")    ]
+        TestRow(status="COLOUR1", country="JAP")    ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
     print(f"Running layout engine in {mode_str} mode. Press Ctrl+C to stop.")
