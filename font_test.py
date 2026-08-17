@@ -2,7 +2,7 @@ import sys
 import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from drawing import draw_custom_char, draw_custom_string
-from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9
+from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9, font_4x7
 
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 
