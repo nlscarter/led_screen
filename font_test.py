@@ -2,7 +2,7 @@ import sys
 import time
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from drawing import draw_custom_char, draw_custom_string
-from fonts.custom_font import LOGO_DATA, FLAG_DATA, LARGE_FONTS
+from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9
 
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 
@@ -47,7 +47,7 @@ class TestRow:
     def render(self, canvas, o_mgr, y_pos):
         logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
         flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos, font_data=FLAG_DATA)
-        draw_custom_string(canvas, o_mgr, "Test", start_x=40, start_y=y_pos, font_data=LARGE_FONTS)
+        draw_custom_string(canvas, o_mgr, "Testing", start_x=40, start_y=y_pos-2, font_data=font_4x7)
         max_char_h = max(flag_char_h, logo_char_h)
         return max_char_h
 
