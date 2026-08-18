@@ -58,12 +58,3 @@ mock_json = {
     }
   ]
 }
-
-
-# Convert payload directly to test your processing code locally
-#data = json.loads(mock_json)
-df = pd.DataFrame(mock_json["cars"])
-
-# Print preview layout mapping
-for _, row in df.iterrows():
-    print(f"[LED Output Preview] P{row['position']} | Car #{row['car_number']} {row['class']}| Gap: {row['gap_to_leader']}")
