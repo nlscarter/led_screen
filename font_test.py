@@ -4,34 +4,39 @@ from drawing import draw_custom_char, draw_custom_string
 from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9, font_4x7, class_lines
 from example_data import mock_json
 
-
-# ─── MOCKING ENVIRONMENT FOR LOCAL LAPTOP TESTING ───
+# ─── ENVIRONMENT DETECTOR & MOCK INTERFACE ───
 try:
     from rgbmatrix import RGBMatrix, RGBMatrixOptions
+
     RUNNING_ON_HARDWARE = True
 except ImportError:
-    print("'rgbmatrix' not found. Running in Laptop Dummy/Mock mode.")
     RUNNING_ON_HARDWARE = False
 
+
     class RGBMatrixOptions:
-        def __init__(self):
-            pass
+        pass
+
 
     class DummyCanvas:
         def Clear(self):
             pass
+
         def SetPixel(self, x, y, r, g, b):
-            # Optional: Print pixels to console if you want to see coordinates
-            # print(f"Pixel set at ({x}, {y}) with color RGB({r},{g},{b})")
+            # Optional: uncomment to see every individual pixel draw instruction
+            print(f"  -> SetPixel({x}, {y}) RGB({r},{g},{b})")
             pass
+
 
     class RGBMatrix:
         def __init__(self, options=None):
-            print("Initialised Mock LED Matrix.")
+            pass
+
         def CreateFrameCanvas(self):
             return DummyCanvas()
+
         def SwapOnVSync(self, canvas):
             return canvas
+# ──────────────────────────────────────────────
 
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 
@@ -75,9 +80,11 @@ class RenderRow:
         self.category = category
 
     def render(self, canvas, o_mgr, y_pos):
-        logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos, font_data=LOGO_DATA)
-        flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos, font_data=FLAG_DATA)
-        draw_custom_string(canvas, o_mgr, "Test!", start_x=40, start_y=y_pos-2, font_data=font_4x7)
+        logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos,
+                                                    font_data=LOGO_DATA)
+        flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos,
+                                                    font_data=FLAG_DATA)
+        draw_custom_string(canvas, o_mgr, "Test!", start_x=40, start_y=y_pos - 2, font_data=font_4x7)
         draw_custom_char(canvas, o_mgr, self.category, start_x=40, start_y=y_pos, font_data=class_lines)
         draw_custom_string(canvas, o_mgr, "P1", start_x=80, start_y=y_pos, font_data=font_5x9)
 
@@ -87,18 +94,17 @@ class RenderRow:
 
 def run_text_pattern():
     options = RGBMatrixOptions()
-    options.rows = 48
-    options.cols = 96
-    options.chain_length = 1
-    options.parallel = 1
-    options.hardware_mapping = "regular"
-
-    # ─── ANTI-FLICKER & PERFORMANCE OPTIMISATIONS ───
-    options.gpio_slowdown = 4  # Higher value handles RPi4 high-speed GPIO timing
-    options.drop_privileges = False  # Keep root privileges for hardware timing accuracy
-    options.pwm_bits = 11  # Lowers CPU overhead slightly to reduce flicker
-    options.brightness = 100  # Caps maximum brightness to reduce power draw/flicker
-    options.scan_mode = 0  # 0 = Progressive scan, helps reduce sync flicker
+    if RUNNING_ON_HARDWARE:
+        options.rows = 48
+        options.cols = 96
+        options.chain_length = 1
+        options.parallel = 1
+        options.hardware_mapping = "regular"
+        options.gpio_slowdown = 4
+        options.drop_privileges = False
+        options.pwm_bits = 11
+        options.brightness = 100
+        options.scan_mode = 0
 
     try:
         matrix = RGBMatrix(options=options)
@@ -111,7 +117,6 @@ def run_text_pattern():
 
     data = mock_json
 
-
     rows = [
         RenderRow(status="FERRARI", country="GBR", category='LMP1'),
         RenderRow(status="PORSCHE", country="JAP", category='LMP2'),
@@ -120,7 +125,11 @@ def run_text_pattern():
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
-    print(f"Running layout engine in {mode_str} mode. Press Ctrl+C to stop.")
+
+    if RUNNING_ON_HARDWARE:
+        print(f"Running layout engine on HARDWARE in {mode_str} mode. Press Ctrl+C to stop.")
+    else:
+        print(f"🖥️  Running layout engine on LAPTOP in {mode_str} mode (Console Mock Output).\n")
 
     try:
         while True:
@@ -129,9 +138,28 @@ def run_text_pattern():
             current_y = 8
             row_padding = 0
 
-            for row in rows:
+            # ─── CONSOLE PRINT LOGIC FOR LAPTOP TESTING ───
+            if not RUNNING_ON_HARDWARE:
+                print("=" * 60)
+                print(f" LAYOUT ENGINE MATRIX RENDERING REPORT (Canvas Width: {orientation_mgr.width}px)")
+                print("=" * 60)
+
+            for i, row in enumerate(rows):
                 row_height = row.render(canvas, orientation_mgr, y_pos=current_y)
+
+                if not RUNNING_ON_HARDWARE:
+                    print(
+                        f"Row {i + 1} | Status: {row.status:<8} | Country: {row.country:<4} | Category: {row.category:<5}")
+                    print(f"      ↳ Rendered at Y-Position: {current_y} | Computed Row Height: {row_height}px")
+                    print("-" * 60)
+
                 current_y += row_height + row_padding
+
+            if not RUNNING_ON_HARDWARE:
+                print(f"Total canvas height used: {current_y}px / Max allowed: {orientation_mgr.height}px")
+                print("=" * 60 + "\n")
+                break  # Stops the infinite loop when testing locally on your laptop
+            # ──────────────────────────────────────────────
 
             canvas = matrix.SwapOnVSync(canvas)
             time.sleep(0.1)
