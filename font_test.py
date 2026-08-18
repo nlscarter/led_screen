@@ -1,8 +1,37 @@
 import sys
 import time
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from drawing import draw_custom_char, draw_custom_string
 from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9, font_4x7, class_lines
+from example_data import mock_json
+
+
+# ─── MOCKING ENVIRONMENT FOR LOCAL LAPTOP TESTING ───
+try:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions
+    RUNNING_ON_HARDWARE = True
+except ImportError:
+    print("'rgbmatrix' not found. Running in Laptop Dummy/Mock mode.")
+    RUNNING_ON_HARDWARE = False
+
+    class RGBMatrixOptions:
+        def __init__(self):
+            pass
+
+    class DummyCanvas:
+        def Clear(self):
+            pass
+        def SetPixel(self, x, y, r, g, b):
+            # Optional: Print pixels to console if you want to see coordinates
+            # print(f"Pixel set at ({x}, {y}) with color RGB({r},{g},{b})")
+            pass
+
+    class RGBMatrix:
+        def __init__(self, options=None):
+            print("Initialised Mock LED Matrix.")
+        def CreateFrameCanvas(self):
+            return DummyCanvas()
+        def SwapOnVSync(self, canvas):
+            return canvas
 
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 
@@ -37,7 +66,7 @@ class OrientationManager:
             canvas.SetPixel(x, y, r, g, b)
 
 
-class TestRow:
+class RenderRow:
     """Heading of page"""
 
     def __init__(self, status, country, category):
@@ -80,11 +109,14 @@ def run_text_pattern():
     canvas = matrix.CreateFrameCanvas()
     orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
+    data = mock_json
+
+
     rows = [
-        TestRow(status="FERRARI", country="GBR", category='LMP1'),
-        TestRow(status="PORSCHE", country="JAP", category='LMP2'),
-        TestRow(status="BMW", country="ITY", category='LMGT'),
-        TestRow(status="COLOUR1", country="JAP", category='LMP1'),
+        RenderRow(status="FERRARI", country="GBR", category='LMP1'),
+        RenderRow(status="PORSCHE", country="JAP", category='LMP2'),
+        RenderRow(status="BMW", country="ITY", category='LMGT'),
+        RenderRow(status="COLOUR1", country="JAP", category='LMP1'),
     ]
 
     mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
