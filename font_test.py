@@ -1,9 +1,9 @@
 import sys
 import time
-from drawing import draw_custom_char, draw_custom_string
-from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_5x9, font_4x7, class_lines
+from rendering import RenderRow
 from example_data import mock_json
 import matplotlib.pyplot as plt
+from rendering import rows_data
 
 # ─── ENVIRONMENT DETECTOR & MOCK INTERFACE ───
 try:
@@ -27,7 +27,7 @@ except ImportError:
 
             # Setup interactive window mode for PyCharm
             plt.ion()
-            self.fig, self.ax = plt.subplots(figsize=(8, 6))
+            self.fig, self.ax = plt.subplots(figsize=(10, 5))
 
             # Scatter plot placeholder so we only update data, not recreate the grid
             self.scatter_plot = None
@@ -82,7 +82,6 @@ except ImportError:
             return DummyCanvas()
 
         def SwapOnVSync(self, canvas):
-            # Tell the mock canvas to process and display graphics updates
             canvas.Show()
             return canvas
 # ──────────────────────────────────────────────
@@ -120,27 +119,6 @@ class OrientationManager:
             canvas.SetPixel(x, y, r, g, b)
 
 
-class RenderRow:
-    """Heading of page"""
-
-    def __init__(self, status, country, category):
-        self.status = status
-        self.country = country
-        self.category = category
-
-    def render(self, canvas, o_mgr, y_pos):
-        logo_char_w, logo_char_h = draw_custom_char(canvas, o_mgr, self.status, start_x=2, start_y=y_pos,
-                                                    font_data=LOGO_DATA)
-        flag_char_w, flag_char_h = draw_custom_char(canvas, o_mgr, self.country, start_x=20, start_y=y_pos,
-                                                    font_data=FLAG_DATA)
-        draw_custom_string(canvas, o_mgr, "Test!", start_x=40, start_y=y_pos - 2, font_data=font_4x7)
-        draw_custom_char(canvas, o_mgr, self.category, start_x=40, start_y=y_pos, font_data=class_lines)
-        draw_custom_string(canvas, o_mgr, "P1", start_x=80, start_y=y_pos, font_data=font_5x9)
-
-        max_char_h = max(flag_char_h, logo_char_h)
-        return max_char_h
-
-
 def run_text_pattern():
     options = RGBMatrixOptions()
     if RUNNING_ON_HARDWARE:
@@ -164,27 +142,18 @@ def run_text_pattern():
     canvas = matrix.CreateFrameCanvas()
     orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
 
-    data = mock_json
-
-    rows = [
-        RenderRow(status="FERRARI", country="GBR", category='LMP1'),
-        RenderRow(status="PORSCHE", country="JAP", category='LMP2'),
-        RenderRow(status="BMW", country="ITY", category='LMGT'),
-        RenderRow(status="COLOUR1", country="JAP", category='LMP1'),
-    ]
-
-    mode_str = "PORTRAIT (48x96)" if IS_PORTRAIT else "LANDSCAPE (96x48)"
+    rows = rows_data
 
     if RUNNING_ON_HARDWARE:
-        print(f"Running layout engine on HARDWARE in {mode_str} mode. Press Ctrl+C to stop.")
+        print(f"Running layout engine on HARDWARE. Press Ctrl+C to stop.")
     else:
-        print(f"Running layout engine on LAPTOP in {mode_str} mode (Interactive UI Debugger).\n")
+        print(f"Running layout engine on LAPTOP (Interactive UI Debugger).\n")
 
     try:
         while True:
             canvas.Clear()
 
-            current_y = 8
+            current_y = 16
             row_padding = 0
 
             # Execute render logic across rows
