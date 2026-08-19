@@ -153,7 +153,7 @@ def run_text_pattern():
         while True:
             canvas.Clear()
 
-            current_y = 16
+            current_y = 7
             row_padding = 0
 
             # Execute render logic across rows
