@@ -22,27 +22,27 @@ def horizontal_line(canvas, o_mgr, start_x, start_y, length, color_idx):
         if 0 <= x < o_mgr.width:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
-def small_font_string(canvas, o_mgr, string, x_gaps, x_pos, start_y, colour=None, justify='left'):
+def small_font_string(canvas, o_mgr, string, x_gaps, x_frame, start_y, colour=None, justify='left'):
     if justify == 'center':
-        start_x = sum(x_gaps[:x_pos])+(x_gaps[x_pos]/2)-1
+        start_x = sum(x_gaps[:x_frame]) + (x_gaps[x_frame] / 2) - 1
     elif justify == 'right':
-        start_x = sum(x_gaps[:x_pos])+x_gaps[x_pos]-2
+        start_x = sum(x_gaps[:x_frame]) + x_gaps[x_frame] - 2
     else:
-        start_x = sum(x_gaps[:x_pos])
+        start_x = sum(x_gaps[:x_frame])
     font_data = font_4x7
     kerning = 1
     _draw_custom_string(canvas=canvas, o_mgr=o_mgr, text= string, start_x= start_x, start_y = start_y,
                         font_data= font_data, colour= colour, kerning=kerning, justify=justify)
 
-def large_font_string(canvas, o_mgr, string, x_gaps, x_pos, start_y, colour=None, justify='left'):
+def large_font_string(canvas, o_mgr, string, x_frames, x_frame, start_y, colour=None, justify='left'):
     font_data = font_5x9
     kerning = 1
     if justify == 'center':
-        start_x = sum(x_gaps[:x_pos])+(x_gaps[x_pos]/2)-1
+        start_x = sum(x_frames[:x_frame]) + (x_frames[x_frame] / 2) - 1
     elif justify == 'right':
-        start_x = sum(x_gaps[:x_pos])+x_gaps[x_pos]-2
+        start_x = sum(x_frames[:x_frame]) + x_frames[x_frame] - 2
     else:
-        start_x = sum(x_gaps[:x_pos])
+        start_x = sum(x_frames[:x_frame])
     _draw_custom_string(canvas=canvas, o_mgr=o_mgr, text= string, start_x= start_x, start_y = start_y,
                         font_data= font_data, colour= colour, kerning=kerning, justify=justify)
 
