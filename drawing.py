@@ -22,6 +22,39 @@ def horizontal_line(canvas, o_mgr, start_x, start_y, length, color_idx):
         if 0 <= x < o_mgr.width:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
+def stint_line(canvas, o_mgr, start_x, start_y, pixel_pattern, color_idx):
+    """Draws a horizontal line based on a pattern of 1s and 0s, replacing the last pixel with a red dot.
+
+    pixel_pattern: A list/sequence of 1s and 0s.
+    color_idx: Corresponds to the 4-bit key in FONT_COLOR_MAP.
+    """
+    # Fetch the standard RGB values from your global map; fallback to white if missing
+    r, g, b = FONT_COLOR_MAP.get(color_idx, (255, 255, 255))
+
+    # Early exit if the line is vertically completely out of bounds
+    if start_y < 0 or start_y >= o_mgr.height:
+        return
+
+    # Cache the total length to easily identify the final index
+    total_pixels = len(pixel_pattern)
+
+    # Loop through the pattern indices and values
+    for i, val in enumerate(pixel_pattern):
+        x = start_x + i
+
+        # Skip drawing entirely if the individual pixel is out of horizontal bounds
+        if not (0 <= x < o_mgr.width):
+            continue
+
+        # Check if this is the absolute last item in the list
+        if i == total_pixels - 1:
+            # Force draw a red dot
+            o_mgr.set_pixel(canvas, x, start_y, 255, 0, 0)
+
+        # Otherwise, follow the normal 1/0 plotting logic
+        elif val == 1:
+            o_mgr.set_pixel(canvas, x, start_y, r, g, b)
+
 def small_font_string(canvas, o_mgr, string, x_gaps, x_frame, start_y, colour=None, justify='left'):
     if justify == 'center':
         start_x = sum(x_gaps[:x_frame]) + (x_gaps[x_frame] / 2) - 1
