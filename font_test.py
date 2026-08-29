@@ -145,7 +145,7 @@ def run_text_pattern():
     rows = rows_data
 
     if RUNNING_ON_HARDWARE:
-        print(f"Running layout engine on HARDWARE. Press Ctrl+C to stop.")
+        print(f"Running layout engine on RPi4. Press Ctrl+C to stop.")
     else:
         print(f"Running layout engine on LAPTOP (Interactive UI Debugger).\n")
 

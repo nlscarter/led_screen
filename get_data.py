@@ -12,18 +12,20 @@ print(session)
 openwec.configure(api_key="owec_e8N1kbg-lER2ZccDr6lgX1WmFmN_Gt6y")
 
 laps = session.laps(car="7")
+
 #t = session.stints("7")
 
 # Results (public, no API key needed)
 results = session.results()
 print(results.head())
+print(laps)
 
-# Main execution loop mimicking a live hardware driver
-#if __name__ == "__main__":
-#    print("Starting live LED stream script. Press Ctrl+C to stop.")
-#    while True:
-#        live_df = fetch_live_dataframe()
-#        update_led_display(live_df)
+# Analytics
+stints     = session.stints(car_class="HYPERCAR")
+pace       = session.pace(car_class="HYPERCAR")
+pit_window = session.pit_window(car="7")
 
-        # Standard live timing boards poll every 1 to 2 seconds
-        #time.sleep(1.5)
+# Plots
+session.plot_stint_chart(car_class="HYPERCAR")
+session.plot_gap_to_leader(car_class="HYPERCAR")
+session.plot_lap_evolution(car="7")
