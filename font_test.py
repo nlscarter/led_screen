@@ -1,7 +1,5 @@
 import sys
 import time
-from rendering import RenderRow
-from example_data import mock_json
 import matplotlib.pyplot as plt
 from rendering import rows_data
 
