@@ -1,12 +1,15 @@
-from setup import FONT_COLOR_MAP
-from fonts.custom_font import font_4x7, FLAG_DATA, LOGO_DATA, class_vertlines, font_5x9
+from fonts.setup import FONT_COLOR_MAP
+from fonts.custom_font import font_4x7, class_vertlines, font_5x9, class_underlines
+from fonts.flags import FLAG_DATA
+from fonts.team_logo import LOGO_DATA
 
 
-def horizontal_line(canvas, o_mgr, start_x, start_y, length, color_idx):
+def horizontal_line(canvas, o_mgr, start_x, start_y, length, car_class):
     """Draws a horizontal line starting at (start_x, start_y) extending right by length.
 
     color_idx should correspond to the 4-bit key in FONT_COLOR_MAP (e.g., 1-15).
     """
+    color_idx = class_underlines[car_class]
     # Fetch the RGB values from your global map; fallback to white if missing
     r, g, b = FONT_COLOR_MAP.get(color_idx, (255, 255, 255))
 

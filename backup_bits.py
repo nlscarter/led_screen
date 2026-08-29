@@ -1,5 +1,6 @@
 from drawing import _draw_custom_string, _draw_custom_char
-from fonts.custom_font import BIG_FONT, LOGO_DATA
+from fonts.custom_font import BIG_FONT
+from fonts.custom_logo import LOGO_DATA
 
 
 class Stint:
