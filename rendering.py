@@ -1,7 +1,9 @@
 import datetime
 from zoneinfo import ZoneInfo
 
-from drawing import horizontal_line, class_line, small_font_string, flag, draw_logo, large_font_string
+from drawing import horizontal_line, class_line, small_font_string, flag, draw_logo, large_font_string, \
+    small_font_string_fade
+
 
 class RenderRow:
     """Heading of page"""
@@ -31,7 +33,7 @@ class RenderTitle:
     """Heading of page"""
     def __init__(self, flag, lap):
         self.flag = flag
-        tz = ZoneInfo("GMT")
+        tz = ZoneInfo("UTC")
         ft = "%H:%M:%S"
         time_now = datetime.datetime.now(tz=tz).strftime(ft)
         self.time_now = time_now
@@ -40,14 +42,14 @@ class RenderTitle:
 
     def render(self, canvas, o_mgr, y_pos):
         x_lengths = [22, 43, 33]
-        draw_logo(canvas, o_mgr, "ROLEX", start_x=0, start_y=y_pos)
+        draw_logo(canvas, o_mgr, self.flag, start_x=0, start_y=y_pos)
         small_font_string(canvas, o_mgr, self.time_now, x_gaps=x_lengths, x_frame=1, start_y=y_pos - 1, colour=0xB, justify='center')
-        small_font_string(canvas, o_mgr, self.lap_string, x_gaps=x_lengths, x_frame=2, start_y=y_pos - 1, colour=0xD, justify='right')
+        small_font_string_fade(canvas, o_mgr, self.lap_string, x_gaps=x_lengths, x_frame=2, start_y=y_pos - 1, color1=0xD, color2=1, justify='right')
 
         return 9
 
 rows_data = [
-        RenderTitle(flag='fcy', lap=358),
+        RenderTitle(flag='ROLEX', lap=358),
         RenderRow(status="FERRARI", country="GBR", category=1, num="12", pos="1", name="abcdefghi"),
         RenderRow(status="PORSCHE", country="JAP", category=4, num="56", pos="8", name="jklmnopqr"),
         RenderRow(status="BMW", country="ITY", category=2, num="007", pos="14",   name="stuvwxyz!"),
