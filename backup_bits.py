@@ -1,4 +1,4 @@
-from drawing import draw_custom_string, draw_custom_char
+from drawing import _draw_custom_string, _draw_custom_char
 from fonts.custom_font import BIG_FONT, LOGO_DATA
 
 
@@ -73,13 +73,13 @@ class TelemetryRow:
         max_h = 0
 
         # Column 1: Position
-        w1, h1 = draw_custom_string(canvas, o_mgr, str(self.position.num), start_x=current_x, start_y=y_pos,
-                                    font_data=BIG_FONT)
+        w1, h1 = _draw_custom_string(canvas, o_mgr, str(self.position.num), start_x=current_x, start_y=y_pos,
+                                     font_data=BIG_FONT)
         current_x += w1
         max_h = max(max_h, h1)
 
         # Column 2: Team Logo
-        w2, h2 = draw_custom_char(canvas, o_mgr, self.position.car.team, start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
+        w2, h2 = _draw_custom_char(canvas, o_mgr, self.position.car.team, start_x=current_x, start_y=y_pos, font_data=LOGO_DATA)
         current_x += w2
         max_h = max(max_h, h2)
 

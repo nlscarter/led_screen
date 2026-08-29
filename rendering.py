@@ -1,4 +1,7 @@
-from drawing import draw_custom_char, draw_custom_string, draw_horizontal_line
+from matplotlib.pyplot import draw_all
+
+from drawing import _draw_custom_char, _draw_custom_string, horizontal_line, class_line, \
+    small_font_string, flag, draw_logo, large_font_string
 from fonts.custom_font import LOGO_DATA, FLAG_DATA, font_4x7, font_5x9, class_vertlines
 
 
@@ -16,15 +19,15 @@ class RenderRow:
 
     def render(self, canvas, o_mgr, y_pos):
         x_lengths = [13,1,10,11,46]
-        draw_custom_string(canvas, o_mgr, self.pos, start_x=0, start_y=y_pos-1, font_data=font_5x9)
-        draw_custom_char(canvas, o_mgr, self.category, start_x=sum(x_lengths[:1])-1, start_y=y_pos, font_data=class_vertlines)
-        draw_horizontal_line(canvas, o_mgr, start_x=sum(x_lengths[:1]), start_y=y_pos, length=x_lengths[2], color_idx=self.category)
-        draw_custom_string(canvas, o_mgr, self.num, start_x=sum(x_lengths[:2]), start_y=y_pos - 2, font_data=font_4x7)
-        draw_custom_char(canvas, o_mgr, self.status, start_x=sum(x_lengths[:3]), start_y=y_pos, font_data=LOGO_DATA)
-        draw_custom_string(canvas, o_mgr, self.name, start_x=sum(x_lengths[:4]), start_y=y_pos - 2, font_data=font_4x7)
-        draw_custom_char(canvas, o_mgr, self.country, start_x=sum(x_lengths[:5]), start_y=y_pos, font_data=FLAG_DATA)
+        large_font_string(canvas, o_mgr, self.pos, x_gaps=x_lengths, x_pos=0, start_y=y_pos - 1,justify='center')
+        class_line(canvas, o_mgr, self.category, start_x=sum(x_lengths[:1]) - 1, start_y=y_pos)
+        horizontal_line(canvas, o_mgr, start_x=sum(x_lengths[:1]), start_y=y_pos, length=x_lengths[2], color_idx=self.category)
+        small_font_string(canvas, o_mgr, self.num, x_gaps=x_lengths, x_pos=2, start_y=y_pos - 2, colour=8)
+        draw_logo(canvas, o_mgr, self.status, start_x=sum(x_lengths[:3]), start_y=y_pos)
+        small_font_string(canvas, o_mgr, self.name, x_gaps=x_lengths, x_pos=4, start_y=y_pos - 2)
+        flag(canvas, o_mgr, self.country, start_x=sum(x_lengths[:5]), start_y=y_pos)
 
-        draw_horizontal_line(canvas, o_mgr, start_x=sum(x_lengths[:4]), start_y=y_pos, length=x_lengths[-1]-1, color_idx=11)
+        horizontal_line(canvas, o_mgr, start_x=sum(x_lengths[:4]), start_y=y_pos, length=x_lengths[-1] - 1, color_idx=11)
         return 10
 
 class RenderTitle:
@@ -34,8 +37,10 @@ class RenderTitle:
         a=0
 
     def render(self, canvas, o_mgr, y_pos):
-        draw_custom_char(canvas, o_mgr, "ROLEX", start_x=2, start_y=y_pos, font_data=LOGO_DATA)
-        draw_custom_string(canvas,o_mgr)
+        x_lengths = [25, 40]
+        draw_logo(canvas, o_mgr, "ROLEX", start_x=2, start_y=y_pos)
+        small_font_string(canvas, o_mgr, "12:34:56", x_gaps=x_lengths, x_pos=1, start_y=y_pos-1, colour=0xB, justify='right')
+
         return 9
 
 rows_data = [
