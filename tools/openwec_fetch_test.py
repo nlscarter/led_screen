@@ -7,7 +7,7 @@ session = openwec.Session("WEC", 2026, "Le Mans", "Race")
 print(session)
 openwec.configure(api_key="owec_e8N1kbg-lER2ZccDr6lgX1WmFmN_Gt6y")
 
-laps = session.laps(car="007")
+laps = session.laps(car="12")
 
 # Results (public, no API key needed)
 results = session.results()

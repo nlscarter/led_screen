@@ -28,6 +28,7 @@ class RenderRow:
         self.car_laps = car_laps
         self.stint = self.get_stint()
         self.stint_list = self.stint_pixels()
+        print(self.stint_list)
         self.cached_fullname = self.fullname()
 
     def driver(self):
