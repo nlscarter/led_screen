@@ -32,7 +32,7 @@ except ImportError:
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
 CATEGORIES = ["HYPERCAR", "LMP2", "LMGT3"]
-DISPLAY_DURATION = 5  # 60s per category (3 x 60s = 180s total)
+DISPLAY_DURATION = 20  # 60s per category (3 x 60s = 180s total)
 MAX_CARS = 4
 
 
