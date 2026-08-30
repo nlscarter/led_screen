@@ -28,7 +28,6 @@ class RenderRow:
         self.car_laps = car_laps
         self.stint = self.get_stint()
         self.stint_list = self.stint_pixels()
-        print(self.stint_list)
         self.cached_fullname = self.fullname()
 
     def driver(self):
@@ -111,7 +110,7 @@ class RenderRow:
         return self._fl_time
 
     def render(self, canvas, o_mgr, y_pos):
-        x_frames = [13, 1, 10, 11, 46]
+        x_frames = [13, 1, 10, 11, 47, 15]
         large_font_string(canvas, o_mgr, self.position(), x_frames=x_frames, x_frame=0, start_y=y_pos - 1, justify='center')
         class_line(canvas, o_mgr, self.car_class(), start_x=sum(x_frames[:1]) - 1, start_y=y_pos)
         horizontal_line(canvas, o_mgr, start_x=sum(x_frames[:1]), start_y=y_pos, length=x_frames[2], car_class=self.car_class())

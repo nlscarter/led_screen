@@ -62,16 +62,31 @@ def stint_line(canvas, o_mgr, start_x, start_y, pixel_pattern, color_idx):
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
 def small_font_string(canvas, o_mgr, string, x_gaps, x_frame, start_y, colour=None, justify='left'):
+    slot_start_x = sum(x_gaps[:x_frame])
+    max_width = x_gaps[x_frame]
+
     if justify == 'center':
-        start_x = sum(x_gaps[:x_frame]) + (x_gaps[x_frame] / 2) - 1
+        start_x = slot_start_x + (max_width / 2) - 1
     elif justify == 'right':
-        start_x = sum(x_gaps[:x_frame]) + x_gaps[x_frame] - 2
+        start_x = slot_start_x + max_width - 2
     else:
-        start_x = sum(x_gaps[:x_frame])
+        start_x = slot_start_x
+
     font_data = font_4x7
     kerning = 1
-    _draw_custom_string(canvas=canvas, o_mgr=o_mgr, text= string, start_x= start_x, start_y = start_y,
-                        font_data= font_data, colour= colour, kerning=kerning, justify=justify)
+
+    _draw_custom_string(
+        canvas=canvas,
+        o_mgr=o_mgr,
+        text=string,
+        start_x=start_x,
+        start_y=start_y,
+        font_data=font_data,
+        colour=colour,
+        kerning=kerning,
+        justify=justify,
+        clip_bounds=(slot_start_x, slot_start_x + max_width)
+    )
 
 def large_font_string(canvas, o_mgr, string, x_frames, x_frame, start_y, colour=None, justify='left'):
     font_data = font_5x9
@@ -101,7 +116,7 @@ def class_line(canvas, o_mgr, class_id, start_x, start_y):
     _draw_custom_char(canvas, o_mgr, class_id, start_x, start_y, font_data, colour)
 
 
-def _draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data, colour):
+def _draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data, colour, clip_bounds=None):
     """Renders a single variable character using virtual layout dimensions."""
     if char not in font_data:
         char = ' '
@@ -120,6 +135,8 @@ def _draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data, colour):
     for col_idx in range(char_width):
         x = start_x + col_idx
         if not (0 <= x < o_mgr.width):
+            continue
+        if clip_bounds and not (clip_bounds[0] <= x < clip_bounds[1]):
             continue
 
         temp_col = col_data[col_idx]
@@ -142,7 +159,7 @@ def _draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data, colour):
     return char_width, 10
 
 
-def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour, kerning, justify):
+def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour, kerning, justify, clip_bounds=None):
     """Renders an entire string, tracking cumulative widths and mapping special multi-char tokens.
 
     If right_justify is True, start_x acts as the right alignment margin.
@@ -182,7 +199,13 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
     # 4. Iterate through the processed text and draw
     current_x = start_x
     for char in processed_text:
-        char_width, char_height = _draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data, colour)
+        # Skip characters that start after the right clip boundary
+        if clip_bounds and current_x >= clip_bounds[1]:
+            break
+
+        char_width, char_height = _draw_custom_char(
+            canvas, o_mgr, char, current_x, start_y, font_data, colour, clip_bounds=clip_bounds
+        )
         current_x += char_width + kerning
 
     final_width = current_x - start_x - kerning if current_x != start_x else 0
@@ -272,51 +295,6 @@ def _scroll_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colo
         final_width = current_x - start_x - kerning if current_x != start_x else 0
 
     return final_width, 10
-
-
-def _draw_custom_string_gradient(canvas, o_mgr, text, start_x, start_y, font_data, color1, color2, step, kerning=1,
-                                 justify='left'):
-    """
-    Wraps _draw_custom_string to automatically calculate a color transition
-    between color1 and color2 at a specific frame step (0 to 49).
-    """
-    # Force step to wrap around between 0 and 49 to keep it moving continuously
-    current_step = step % 50
-
-    # Calculate the interpolation factor (0.0 at step 0, 1.0 at step 49)
-    # We use a sine wave calculation for smooth ping-pong cycling,
-    # or simple linear step division. Here is smooth ping-pong:
-    import math
-    # Maps 0->49 step into 0.0->1.0->0.0 smooth wave transition
-    factor = (math.sin((current_step / 50.0) * 2 * math.pi) + 1) / 2
-
-    # If you prefer pure straight linear color fading (Color1 -> Color2 -> abrupt jump back to Color1):
-    # factor = current_step / 49.0
-
-    # Linearly interpolate between RGB channels
-    r = int(color1[0] + (color2[0] - color1[0]) * factor)
-    g = int(color1[1] + (color2[1] - color1[1]) * factor)
-    b = int(color1[2] + (color2[2] - color1[2]) * factor)
-
-    dynamic_color = (r, g, b)
-
-    # Call your original function with the newly calculated color step
-    return _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, dynamic_color, kerning, justify)
-
-def small_font_string_fade(canvas, o_mgr, string, x_gaps, x_frame, start_y, color1, color2 , justify='left'):
-    if justify == 'center':
-        start_x = sum(x_gaps[:x_frame]) + (x_gaps[x_frame] / 2) - 1
-    elif justify == 'right':
-        start_x = sum(x_gaps[:x_frame]) + x_gaps[x_frame] - 2
-    else:
-        start_x = sum(x_gaps[:x_frame])
-    font_data = font_4x7
-    kerning = 1
-    r1, g1, b1 = FONT_COLOR_MAP.get(color1, (255, 255, 255))
-    r2, g2, b2 = FONT_COLOR_MAP.get(color2, (255, 255, 255))
-
-    _draw_custom_string_gradient(canvas, o_mgr, string, start_x, start_y, font_data, [r1, g1, b1], [r2, g2, b2], step=1, kerning=1,
-                                 justify='left')
 
 
 class DummyCanvas:
