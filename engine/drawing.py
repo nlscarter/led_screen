@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('TkAgg')  # Forces a single live interactive pop-up window
 from matplotlib import pyplot as plt
 
 from config import FONT_COLOR_MAP
