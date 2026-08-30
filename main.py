@@ -31,18 +31,16 @@ except ImportError:
 
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
-CATEGORIES = ["OVERALL", "LMP2", "LMGT3"]
+CATEGORIES = ["HYPERCAR", "LMP2", "LMGT3"]
 DISPLAY_DURATION = 5  # 60s per category
 MAX_CARS = 4
 
 
-def build_rows_for_category(session, df_slice):
+def build_rows_for_category(session, car_numbers):
     """Builds the header and row objects for a specific race category."""
     rows = [RenderTitle(flag='ROLEX', session=session)]
-    if df_slice is not None and not df_slice.empty:
-        car_numbers = df_slice['car_number'].dropna().astype(str).tolist()[:MAX_CARS]
-        for car_num in car_numbers:
-            rows.append(RenderRow(num=car_num, session=session))
+    for car_num in car_numbers:
+        rows.append(RenderRow(num=car_num, session=session))
     return rows
 
 
@@ -59,23 +57,17 @@ def main():
             timestamp = time.strftime('%H:%M:%S')
             print(f"[{timestamp}] Fetching latest WEC session data (3-minute cycle)...")
             session = openwec.Session("WEC", 2026, "Le Mans", "Race")
-            overall = session.results()
+            results = session.results()
 
-            lmp2 = overall[overall['car_class'] == 'LMP2']
-            lmgt3 = overall[overall['car_class'] == 'LMGT3']
-
-            category_map = {
-                "OVERALL": overall,
-                "LMP2": lmp2,
-                "LMGT3": lmgt3,
-            }
-
-            # Run pattern 3 times across the 3 categories (60s each = 180s total)
+            # Run pattern 3 times across the 3 categories
             for cat_name in CATEGORIES:
-                df_slice = category_map.get(cat_name)
-                print(f"[{time.strftime('%H:%M:%S')}] Displaying {cat_name} ({len(df_slice) if df_slice is not None else 0} cars) for {DISPLAY_DURATION:.0f}s...")
+                filtered_df = results[results['car_class'] == cat_name]
+                top_rows = filtered_df[:MAX_CARS]
+                car_numbers = top_rows['car_number'].dropna().astype(str).tolist()
+
+                print(f"[{time.strftime('%H:%M:%S')}] Displaying {cat_name}... {car_numbers}")
                 
-                rows_data = build_rows_for_category(session, df_slice, max_cars=4)
+                rows_data = build_rows_for_category(session, car_numbers=car_numbers)
                 
                 run_text_pattern(
                     rows_data=rows_data,
