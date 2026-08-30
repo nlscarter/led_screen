@@ -1,11 +1,8 @@
-import time
+from matplotlib import pyplot as plt
 
-from fonts.setup import FONT_COLOR_MAP
-from fonts.custom_font import class_vertlines, class_underlines
-from fonts.font_5x9 import font_5x9
-from fonts.font_4x7 import font_4x7
-from fonts.flags import FLAG_DATA
-from fonts.team_logo import LOGO_DATA
+from config import FONT_COLOR_MAP
+from assets.graphics import class_underlines, class_vertlines, FLAG_DATA, LOGO_DATA
+from assets.fonts import font_4x7, font_5x9
 
 
 def horizontal_line(canvas, o_mgr, start_x, start_y, length, car_class):
@@ -194,11 +191,10 @@ def _scroll_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colo
                         scroll_speed=50):
     """Renders an entire string, tracking cumulative widths and mapping special multi-char tokens.
 
-    Supports 'left', 'center', and 'right' justifications.
-    If frame_width is provided and the text exceeds it, the text will scroll smoothly.
+    Supports dynamic persistent scrolling inside an active UI loop framework.
 
     :param frame_width: Maximum horizontal pixel width available for the text.
-    :param scroll_speed: Pixels per second to shift the text when scrolling.
+    :param scroll_speed: Number of pixels to shift the text per render frame.
     """
     text = str(text)
 
@@ -224,49 +220,57 @@ def _scroll_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colo
     if total_width > 0:
         total_width -= kerning  # Remove trailing kerning
 
-    # 4. Handle text scrolling if it exceeds the frame width
-    scroll_offset = 0
+    # 4. Handle state-based persistent text scrolling
+    current_offset = 0
     is_scrolling = False
 
     if frame_width is not None and total_width > frame_width:
         is_scrolling = True
-        # Create a looping marquee effect. We add a buffer (e.g., 40px) so there's a pause before it loops.
-        loop_range = total_width + 40
-        # Calculate current pixel offset using time elapsed
-        scroll_offset = int(time.time() * scroll_speed) % loop_range
 
-    # 5. Shift the starting x position based on justification (Only apply if NOT scrolling)
+        # Determine the loop resetting threshold (Text width + padding gap)
+        loop_reset_point = total_width + 40
+
+        # Retrieve or initialize the scroll offset tracker from your manager or active row state
+        # We try to bind it to 'o_mgr' so it survives across individual render cycles
+        if not hasattr(o_mgr, '_scroll_tracker'):
+            o_mgr._scroll_tracker = 0
+
+        # Increment the persistent offset position frame-by-frame
+        o_mgr._scroll_tracker = (o_mgr._scroll_tracker + scroll_speed) % loop_reset_point
+        current_offset = int(o_mgr._scroll_tracker)
+
+    # 5. Shift the starting x position based on justification (Only if NOT scrolling)
     if not is_scrolling and justify in ('center', 'right'):
         if justify == 'right':
             start_x = start_x - total_width
         elif justify == 'center':
             start_x = start_x - (total_width // 2)
 
-    # 6. Iterate through the processed text and draw with viewport clipping
-    current_x = start_x - scroll_offset
+    # 6. Iterate through the processed text and draw with layout boundary clipping
+    current_x = start_x - current_offset
 
     for char in processed_text:
         actual_char = char if char in font_data else ' '
         char_width = len(font_data.get(actual_char, []))
 
-        # Optimization: Only draw the character if it falls within the visible frame
         if frame_width is not None:
-            # Check if the character is entirely to the left or right of the frame boundaries
+            # Performance optimization: Skip rendering characters completely out of the viewport
             if current_x + char_width < start_x or current_x > start_x + frame_width:
                 current_x += char_width + kerning
                 continue
 
-        # Draw the character if it passes the boundary checks
+        # Draw the valid visible character chunk
         _draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data, colour)
         current_x += char_width + kerning
 
-    # Calculate final bounding box width inside the viewport frame
+    # Return total bounds width
     if is_scrolling:
         final_width = frame_width
     else:
         final_width = current_x - start_x - kerning if current_x != start_x else 0
 
     return final_width, 10
+
 
 def _draw_custom_string_gradient(canvas, o_mgr, text, start_x, start_y, font_data, color1, color2, step, kerning=1,
                                  justify='left'):
@@ -311,5 +315,91 @@ def small_font_string_fade(canvas, o_mgr, string, x_gaps, x_frame, start_y, colo
 
     _draw_custom_string_gradient(canvas, o_mgr, string, start_x, start_y, font_data, [r1, g1, b1], [r2, g2, b2], step=1, kerning=1,
                                  justify='left')
+
+
+class DummyCanvas:
+    def __init__(self, width: int = 96, height: int = 48):
+        """Initializes a persistent interactive window."""
+        self.width = width
+        self.height = height
+        self.pixels = {}
+
+        # Setup interactive window mode for PyCharm
+        plt.ion()
+        self.fig, self.ax = plt.subplots(figsize=(10, 5))
+
+        # Scatter plot placeholder so we only update data, not recreate the grid
+        self.scatter_plot = None
+        self.Clear()
+
+    def Clear(self):
+        """Resets the internal pixel storage buffer."""
+        self.pixels = {}
+
+    def SetPixel(self, x, y, r, g, b):
+        """Stores the pixel color internally."""
+        if 0 <= x < self.width and 0 <= y < self.height:
+            # Normalize RGB from 0-255 to 0.0-1.0 for Matplotlib
+            self.pixels[(x, y)] = (r / 255.0, g / 255.0, b / 255.0)
+
+    def Show(self):
+        """Flushes the buffer and updates the live canvas frame instantly."""
+        self.ax.clear()
+        self.ax.set_facecolor('black')
+
+        # Lock the grid dimensions to match the matrix properties
+        self.ax.set_xlim(-.5, self.width+.5)
+        self.ax.set_ylim(-.5, self.height+.5)
+
+        # Turn off ticks/labels to speed up execution, but keep the core grid boundaries
+        #self.ax.set_xticks(range(0, self.width, 4))
+        #self.ax.set_yticks(range(0, self.height, 4))
+        #self.ax.grid(False, color='#151515', linestyle='-', linewidth=0.5)
+        self.ax.invert_yaxis()  # (0,0) Top-Left
+
+        if self.pixels:
+            x_coords, y_coords = zip(*self.pixels.keys())
+            colors = list(self.pixels.values())
+
+            self.scatter_plot = self.ax.scatter(
+                x_coords, y_coords, color=colors, marker='s', s=10
+            )
+
+        plt.title(f"LED Matrix Debugger Canvas ({self.width}x{self.height})", color='black')
+
+        # Force draw cycles without freezing execution threads
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.001)
+
+
+class OrientationManager:
+    """Handles layout dimensions and pixel transformations based on rotation state."""
+
+    def __init__(self, matrix, portrait_mode):
+        self.matrix = matrix
+        self.portrait_mode = portrait_mode
+
+        # Base hardware configurations (assuming a physical 96x48 canvas)
+        self.hw_width = 96
+        self.hw_height = 48
+
+        # Virtual layout dimensions exposed to drawing functions
+        if self.portrait_mode:
+            self.width = self.hw_height  # 48
+            self.height = self.hw_width  # 96
+        else:
+            self.width = self.hw_width  # 96
+            self.height = self.hw_height  # 48
+
+    def set_pixel(self, canvas, x, y, r, g, b):
+        """Maps virtual layout coordinates to physical matrix hardware pixels."""
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            return
+
+        if self.portrait_mode:
+            canvas.SetPixel(y, x, r, g, b)
+        else:
+            canvas.SetPixel(x, y, r, g, b)
 
 

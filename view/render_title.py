@@ -1,7 +1,7 @@
 import datetime
 from zoneinfo import ZoneInfo
 
-from drawing import draw_logo, small_font_string
+from engine.drawing import draw_logo, small_font_string
 
 
 class RenderTitle:

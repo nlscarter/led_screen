@@ -1,6 +1,6 @@
-from drawing import large_font_string, class_line, horizontal_line, small_font_string, draw_logo, flag, stint_line, \
+from engine.drawing import large_font_string, class_line, horizontal_line, small_font_string, draw_logo, stint_line, \
     _scroll_custom_string
-from fonts.font_4x7 import font_4x7
+from assets.fonts import font_4x7
 
 
 class RenderRow:
@@ -98,13 +98,13 @@ class RenderRow:
         horizontal_line(canvas, o_mgr, start_x=sum(x_frames[:1]), start_y=y_pos, length=x_frames[2], car_class=self.car_class())
         small_font_string(canvas, o_mgr, self.num, x_gaps=x_frames, x_frame=2, start_y=y_pos - 2, colour=8)
         draw_logo(canvas, o_mgr, self.team(), start_x=sum(x_frames[:3]), start_y=y_pos)
-        #small_font_string(canvas, o_mgr, self.fullname(), x_gaps=x_frames, x_frame=4, start_y=y_pos - 2)
+        small_font_string(canvas, o_mgr, self.fullname(), x_gaps=x_frames, x_frame=4, start_y=y_pos - 2)
         #flag(canvas, o_mgr, 'GBR', start_x=sum(x_frames[:5]), start_y=y_pos)
         stint_line(canvas, o_mgr, start_x=sum(x_frames[:4]), start_y=y_pos, pixel_pattern=self.stint_list, color_idx=11)
         small_font_string(canvas, o_mgr, self.laps(), x_gaps=x_frames, x_frame=5, start_y=y_pos - 2, colour=8)
 
-        _scroll_custom_string(canvas, o_mgr, 'This text should be scrolling', 200, y_pos, font_4x7, 8, 1, 'left',
-                              frame_width=50,
-                              scroll_speed=50)
+        #_scroll_custom_string(canvas, o_mgr, 'This text should be scrolling', 200, y_pos, font_4x7, 8, 1, 'left',
+        #                      frame_width=50,
+        #                      scroll_speed=50)
 
         return 10

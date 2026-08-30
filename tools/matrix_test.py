@@ -4,11 +4,13 @@ import math
 import sys
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
+from config import led_rows, led_cols
+
 
 def run_test_pattern():
     options = RGBMatrixOptions()
-    options.rows = 48
-    options.cols = 96
+    options.rows = led_rows
+    options.cols = led_cols
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = "regular"
