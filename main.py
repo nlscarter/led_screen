@@ -48,8 +48,13 @@ def main():
     options = get_matrix_options()
     matrix = RGBMatrix(options=options)
     canvas = matrix.CreateFrameCanvas()
-    orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
+    canvas.Clear()
 
+    if RUNNING_ON_HARDWARE:
+        canvas = matrix.SwapOnVSync(canvas)
+        canvas.Clear()
+
+    orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
     openwec.configure(api_key=api_key)
 
     try:

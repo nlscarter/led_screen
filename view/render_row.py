@@ -7,17 +7,31 @@ class RenderRow:
     """Heading of page"""
 
     def __init__(self, num, session):
-        self.num = num
+        self.num = str(num)
         self.session = session
 
-        # 1. Fetch backend data
+        # Fetch and cache backend data once
         self.car_laps = session.laps(self.num)
-
-        # 2. Extract the last driver's group of laps safely
         self.stint = self.get_stint()
-
-        # 3. Generate the pixel layout using the fresh stint data
         self.stint_list = self.stint_pixels()
+
+        # Cache static row properties
+        results_df = self.session.results()
+        row_match = results_df[results_df['car_number'] == self.num]
+
+        if not row_match.empty:
+            r = row_match.iloc[0]
+            self.cached_pos = str(r['position'])
+            self.cached_class = str(r['car_class'])
+            self.cached_team = str(r['team'])
+            self.cached_laps = str(r['laps_completed'])
+        else:
+            self.cached_pos = "-"
+            self.cached_class = ""
+            self.cached_team = ""
+            self.cached_laps = "0"
+
+        self.cached_fullname = self.fullname()
 
     def driver(self):
         df = self.car_laps
