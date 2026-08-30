@@ -171,7 +171,7 @@ def run_text_pattern():
                 # ──────────────────────────────────────────────
 
             canvas = matrix.SwapOnVSync(canvas)
-            time.sleep(0.1)
+            time.sleep(0.2)
 
     except KeyboardInterrupt:
         print("\nStopping text pattern. Clearing screen...")

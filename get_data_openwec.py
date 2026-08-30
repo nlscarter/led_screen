@@ -1,4 +1,5 @@
 import openwec
+import pickle
 
 # Load a specific session (e.g., Le Mans 2026 Race)
 # The syntax mimics FastF1 (year, event/circuit, session type)
@@ -11,4 +12,3 @@ laps = session.laps(car="007")
 # Results (public, no API key needed)
 results = session.results()
 print(results.head())
-a=0

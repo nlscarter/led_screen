@@ -1,5 +1,9 @@
+import time
+
 from fonts.setup import FONT_COLOR_MAP
-from fonts.custom_font import font_4x7, class_vertlines, font_5x9, class_underlines
+from fonts.custom_font import class_vertlines, class_underlines
+from fonts.font_5x9 import font_5x9
+from fonts.font_4x7 import font_4x7
 from fonts.flags import FLAG_DATA
 from fonts.team_logo import LOGO_DATA
 
@@ -144,6 +148,8 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
 
     If right_justify is True, start_x acts as the right alignment margin.
     """
+    text=str(text)
+
     # 1. Define the mapping from 3-character codes to unique 1-character placeholders
     token_map = {
         "007": "\uE007",
@@ -183,6 +189,84 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
     final_width = current_x - start_x - kerning if current_x != start_x else 0
     return final_width, 10
 
+
+def _scroll_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour, kerning, justify, frame_width=50,
+                        scroll_speed=50):
+    """Renders an entire string, tracking cumulative widths and mapping special multi-char tokens.
+
+    Supports 'left', 'center', and 'right' justifications.
+    If frame_width is provided and the text exceeds it, the text will scroll smoothly.
+
+    :param frame_width: Maximum horizontal pixel width available for the text.
+    :param scroll_speed: Pixels per second to shift the text when scrolling.
+    """
+    text = str(text)
+
+    # 1. Define the mapping from 3-character codes to unique 1-character placeholders
+    token_map = {
+        "007": "\uE007",
+        "008": "\uE008",
+        "009": "\uE009"
+    }
+
+    # 2. Replace the 3-character substrings with their 1-character equivalents
+    processed_text = text
+    for token, single_char in token_map.items():
+        processed_text = processed_text.replace(token, single_char)
+
+    # 3. Calculate full total width of the processed text
+    total_width = 0
+    for char in processed_text:
+        actual_char = char if char in font_data else ' '
+        char_width = len(font_data.get(actual_char, []))
+        total_width += char_width + kerning
+
+    if total_width > 0:
+        total_width -= kerning  # Remove trailing kerning
+
+    # 4. Handle text scrolling if it exceeds the frame width
+    scroll_offset = 0
+    is_scrolling = False
+
+    if frame_width is not None and total_width > frame_width:
+        is_scrolling = True
+        # Create a looping marquee effect. We add a buffer (e.g., 40px) so there's a pause before it loops.
+        loop_range = total_width + 40
+        # Calculate current pixel offset using time elapsed
+        scroll_offset = int(time.time() * scroll_speed) % loop_range
+
+    # 5. Shift the starting x position based on justification (Only apply if NOT scrolling)
+    if not is_scrolling and justify in ('center', 'right'):
+        if justify == 'right':
+            start_x = start_x - total_width
+        elif justify == 'center':
+            start_x = start_x - (total_width // 2)
+
+    # 6. Iterate through the processed text and draw with viewport clipping
+    current_x = start_x - scroll_offset
+
+    for char in processed_text:
+        actual_char = char if char in font_data else ' '
+        char_width = len(font_data.get(actual_char, []))
+
+        # Optimization: Only draw the character if it falls within the visible frame
+        if frame_width is not None:
+            # Check if the character is entirely to the left or right of the frame boundaries
+            if current_x + char_width < start_x or current_x > start_x + frame_width:
+                current_x += char_width + kerning
+                continue
+
+        # Draw the character if it passes the boundary checks
+        _draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data, colour)
+        current_x += char_width + kerning
+
+    # Calculate final bounding box width inside the viewport frame
+    if is_scrolling:
+        final_width = frame_width
+    else:
+        final_width = current_x - start_x - kerning if current_x != start_x else 0
+
+    return final_width, 10
 
 def _draw_custom_string_gradient(canvas, o_mgr, text, start_x, start_y, font_data, color1, color2, step, kerning=1,
                                  justify='left'):
