@@ -2,17 +2,20 @@ import matplotlib
 matplotlib.use('TkAgg')  # Forces a single live interactive pop-up window
 from matplotlib import pyplot as plt
 
-from config import FONT_COLOR_MAP
-from assets.graphics import class_underlines, class_vertlines, FLAG_DATA, LOGO_DATA
+from config import FONT_COLOR_MAP, class_colours
+from assets.graphics import FLAG_DATA, LOGO_DATA
 from assets.fonts import font_4x7, font_5x9
 
 
-def horizontal_line(canvas, o_mgr, start_x, start_y, length, car_class):
+def horiz_line(canvas, o_mgr, car_class, start_x, start_y, length):
     """Draws a horizontal line starting at (start_x, start_y) extending right by length.
 
     color_idx should correspond to the 4-bit key in FONT_COLOR_MAP (e.g., 1-15).
     """
-    color_idx = class_underlines[car_class]
+    color_idx = class_colours.get(car_class)
+    if color_idx is None:
+        return
+
     # Fetch the RGB values from your global map; fallback to white if missing
     r, g, b = FONT_COLOR_MAP.get(color_idx, (255, 255, 255))
 
@@ -28,14 +31,14 @@ def horizontal_line(canvas, o_mgr, start_x, start_y, length, car_class):
         if 0 <= x < o_mgr.width:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
-def stint_line(canvas, o_mgr, start_x, start_y, pixel_pattern, color_idx):
+def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y, colour):
     """Draws a horizontal line based on a pattern of 1s and 0s, replacing the last pixel with a red dot.
 
     pixel_pattern: A list/sequence of 1s and 0s.
     color_idx: Corresponds to the 4-bit key in FONT_COLOR_MAP.
     """
     # Fetch the standard RGB values from your global map; fallback to white if missing
-    r, g, b = FONT_COLOR_MAP.get(color_idx, (255, 255, 255))
+    r, g, b = FONT_COLOR_MAP.get(colour, (255, 255, 255))
 
     # Early exit if the line is vertically completely out of bounds
     if start_y < 0 or start_y >= o_mgr.height:
@@ -61,16 +64,18 @@ def stint_line(canvas, o_mgr, start_x, start_y, pixel_pattern, color_idx):
         elif val == 1:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
-def small_font_string(canvas, o_mgr, string, x_gaps, x_frame, start_y, colour=None, justify='left'):
-    slot_start_x = sum(x_gaps[:x_frame])
-    max_width = x_gaps[x_frame]
-
-    if justify == 'center':
-        start_x = slot_start_x + (max_width / 2) - 1
-    elif justify == 'right':
-        start_x = slot_start_x + max_width - 2
+def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+    if x_width is not None:
+        if justify == 'center':
+            draw_x = start_x + (x_width / 2) - 1
+        elif justify == 'right':
+            draw_x = start_x + x_width - 2
+        else:
+            draw_x = start_x
+        clip_bounds = (start_x, start_x + x_width)
     else:
-        start_x = slot_start_x
+        draw_x = start_x
+        clip_bounds = None
 
     font_data = font_4x7
     kerning = 1
@@ -79,41 +84,66 @@ def small_font_string(canvas, o_mgr, string, x_gaps, x_frame, start_y, colour=No
         canvas=canvas,
         o_mgr=o_mgr,
         text=string,
-        start_x=start_x,
+        start_x=draw_x,
         start_y=start_y,
         font_data=font_data,
         colour=colour,
         kerning=kerning,
         justify=justify,
-        clip_bounds=(slot_start_x, slot_start_x + max_width)
+        clip_bounds=clip_bounds
     )
 
-def large_font_string(canvas, o_mgr, string, x_frames, x_frame, start_y, colour=None, justify='left'):
+def large_font_string(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+    if x_width is not None:
+        if justify == 'center':
+            draw_x = start_x + (x_width / 2) - 1
+        elif justify == 'right':
+            draw_x = start_x + x_width - 2
+        else:
+            draw_x = start_x
+        clip_bounds = (start_x, start_x + x_width)
+    else:
+        draw_x = start_x
+        clip_bounds = None
+
     font_data = font_5x9
     kerning = 1
-    if justify == 'center':
-        start_x = sum(x_frames[:x_frame]) + (x_frames[x_frame] / 2) - 1
-    elif justify == 'right':
-        start_x = sum(x_frames[:x_frame]) + x_frames[x_frame] - 2
-    else:
-        start_x = sum(x_frames[:x_frame])
-    _draw_custom_string(canvas=canvas, o_mgr=o_mgr, text= string, start_x= start_x, start_y = start_y,
-                        font_data= font_data, colour= colour, kerning=kerning, justify=justify)
+
+    _draw_custom_string(
+        canvas=canvas,
+        o_mgr=o_mgr,
+        text=string,
+        start_x=draw_x,
+        start_y=start_y,
+        font_data=font_data,
+        colour=colour,
+        kerning=kerning,
+        justify=justify,
+        clip_bounds=clip_bounds
+    )
 
 def flag(canvas, o_mgr, country, start_x, start_y):
     font_data = FLAG_DATA
     colour=None
     _draw_custom_char(canvas, o_mgr, country, start_x, start_y, font_data, colour)
 
-def draw_logo(canvas, o_mgr, logo, start_x, start_y):
+def draw_logo_(canvas, o_mgr, logo, start_x, start_y):
     font_data = LOGO_DATA
     colour=None
     _draw_custom_char(canvas, o_mgr, logo, start_x, start_y, font_data, colour)
 
-def class_line(canvas, o_mgr, class_id, start_x, start_y):
-    font_data = class_vertlines
-    colour=None
-    _draw_custom_char(canvas, o_mgr, class_id, start_x, start_y, font_data, colour)
+def class_line(canvas, o_mgr, class_id, start_x, start_y, height=9):
+    """Draws a vertical 1-pixel line upwards from start_y using the class color."""
+    color_idx = class_colours.get(class_id)
+    if color_idx is None:
+        return
+
+    r, g, b = FONT_COLOR_MAP.get(color_idx, (255, 255, 255))
+
+    for i in range(height):
+        y = start_y - i
+        if (0 <= y < o_mgr.height) and (0 <= start_x < o_mgr.width):
+            o_mgr.set_pixel(canvas, start_x, y, r, g, b)
 
 
 def _draw_custom_char(canvas, o_mgr, char, start_x, start_y, font_data, colour, clip_bounds=None):

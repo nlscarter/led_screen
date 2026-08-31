@@ -1,4 +1,20 @@
-from engine.drawing import large_font_string, class_line, horizontal_line, small_font_string, draw_logo, stint_line
+from matplotlib.pyplot import draw_if_interactive
+
+from engine.drawing import large_font_string, class_line, horiz_line, small_font, draw_logo_, stint_line
+
+POS_X = 0
+POS_WIDTH = 13
+CLASS_LINE_X = 12
+UNDERLINE_X = 13
+UNDERLINE_LEN = 10
+NUM_X = 14
+NUM_WIDTH = 10
+LOGO_X = 24
+NAME_X = 35
+NAME_WIDTH = 46
+STINT_X = 35
+LAPS_X = 82
+LAPS_WIDTH = 15
 
 
 class RenderRow:
@@ -12,23 +28,23 @@ class RenderRow:
         else:
             data = {}
 
-        self.num = str(num if num is not None else data.get('car_number', ''))
-        self._pos = str(data.get('position', '-'))
-        self._car_class = str(data.get('car_class', ''))
-        self._team = str(data.get('team', ''))
-        self._laps = str(data.get('laps_completed', '0'))
-        self._vehicle = str(data.get('vehicle', ''))
-        self._tyre = str(data.get('tyre_supplier', ''))
-        self._status = str(data.get('status', ''))
-        self._time = str(data.get('total_time_s', ''))
-        self._gap_to_first = str(data.get('gap_to_first_s', ''))
-        self._fast_lap_num = str(data.get('fl_lap_number', ''))
-        self._fl_time = str(data.get('fl_time_s', ''))
+        self.car_numbr = str(num if num is not None else data.get('car_number', ''))
+        self.position = str(data.get('position', '-'))
+        self.car_class = str(data.get('car_class', ''))
+        self.team_name = str(data.get('team', ''))
+        self.laps = str(data.get('laps_completed', '0'))
+        self.vehicle = str(data.get('vehicle', ''))
+        self.tyre = str(data.get('tyre_supplier', ''))
+        self.status = str(data.get('status', ''))
+        self.time = str(data.get('total_time_s', ''))
+        self.gap_to_first = str(data.get('gap_to_first_s', ''))
+        self.fast_lap_num = str(data.get('fl_lap_number', ''))
+        self.fl_time = str(data.get('fl_time_s', ''))
 
         self.car_laps = car_laps
         self.stint = self.get_stint()
         self.stint_list = self.stint_pixels()
-        self.cached_fullname = self.fullname()
+        self.c_fullname = self.fullname()
 
     def driver(self):
         if self.car_laps is not None and hasattr(self.car_laps, 'empty') and not self.car_laps.empty:
@@ -76,48 +92,15 @@ class RenderRow:
             return (~df['crossing_finish_in_pit']).astype(int).tolist()
         return []
 
-    def team(self):
-        return self._team
-
-    def car_class(self):
-        return self._car_class
-
-    def position(self):
-        return self._pos
-
-    def vehicle(self):
-        return self._vehicle
-
-    def tyre(self):
-        return self._tyre
-
-    def status(self):
-        return self._status
-
-    def laps(self):
-        return self._laps
-
-    def time(self):
-        return self._time
-
-    def gap_to_first(self):
-        return self._gap_to_first
-
-    def fast_lap_num(self):
-        return self._fast_lap_num
-
-    def fl_time(self):
-        return self._fl_time
-
     def render(self, canvas, o_mgr, y_pos):
-        x_frames = [13, 1, 10, 11, 47, 15]
-        large_font_string(canvas, o_mgr, self.position(), x_frames=x_frames, x_frame=0, start_y=y_pos - 1, justify='center')
-        class_line(canvas, o_mgr, self.car_class(), start_x=sum(x_frames[:1]) - 1, start_y=y_pos)
-        horizontal_line(canvas, o_mgr, start_x=sum(x_frames[:1]), start_y=y_pos, length=x_frames[2], car_class=self.car_class())
-        small_font_string(canvas, o_mgr, self.num, x_gaps=x_frames, x_frame=2, start_y=y_pos - 2, colour=8)
-        draw_logo(canvas, o_mgr, self.team(), start_x=sum(x_frames[:3]), start_y=y_pos)
-        small_font_string(canvas, o_mgr, self.cached_fullname, x_gaps=x_frames, x_frame=4, start_y=y_pos - 2)
-        stint_line(canvas, o_mgr, start_x=sum(x_frames[:4]), start_y=y_pos, pixel_pattern=self.stint_list, color_idx=11)
-        small_font_string(canvas, o_mgr, self.laps(), x_gaps=x_frames, x_frame=5, start_y=y_pos - 2, colour=8)
+        y_text = y_pos - 2
 
+        small_font(canvas, o_mgr, self.position, start_x=POS_X, x_width=POS_WIDTH, start_y=y_pos - 1, justify='center')
+        class_line(canvas, o_mgr, self.car_class, start_x=CLASS_LINE_X, start_y=y_pos)
+        horiz_line(canvas, o_mgr, self.car_class, start_x=UNDERLINE_X, start_y=y_pos, length=UNDERLINE_LEN)
+        small_font(canvas, o_mgr, self.car_numbr, start_x=NUM_X, x_width=NUM_WIDTH, start_y=y_text, colour=8)
+        draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos)
+        small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
+        stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos, colour=11)
+        small_font(canvas, o_mgr, self.laps, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
         return 10

@@ -1,7 +1,7 @@
 import time
 import openwec
 
-from config import api_key, get_matrix_options
+from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISPLAY_DURATION, MAX_CARS
 from engine.drawing import DummyCanvas, OrientationManager
 from view.render_row import RenderRow
 from view.render_title import RenderTitle
@@ -29,17 +29,12 @@ except ImportError:
             return canvas
 # ──────────────────────────────────────────────
 
-IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
-DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
-CATEGORIES = ["HYPERCAR", "LMP2", "LMGT3"]
-DISPLAY_DURATION = 20
-MAX_CARS = 4
-
+CATEGORIES = list(class_colours.keys())
 
 def build_rows_for_category(session, top_rows, current_lap):
     """Pulls laps data for top cars from openwec and builds render objects."""
     rows = [RenderTitle(flag='ROLEX', lap=current_lap)]
-    for _, car_row in top_rows.iterrows():
+    for index, car_row in top_rows.iterrows():
         car_num = str(car_row['car_number'])
         try:
             car_laps = session.laps(car_num)
@@ -68,6 +63,7 @@ def main():
             timestamp = time.strftime('%H:%M:%S')
             print(f"[{timestamp}] Fetching latest WEC session data (3-minute cycle)...")
             session = openwec.Session("WEC", 2026, "Le Mans", "Race")
+            print(session)
             results = session.results()
             current_lap = results['laps_completed'].iloc[0] if not results.empty and 'laps_completed' in results.columns else 0
 
@@ -94,8 +90,6 @@ def main():
         canvas.Clear()
         if RUNNING_ON_HARDWARE:
             matrix.SwapOnVSync(canvas)
-
-
 
 def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=None, orientation_mgr=None):
     """Renders rows to the matrix or dummy canvas for the specified duration (seconds)."""

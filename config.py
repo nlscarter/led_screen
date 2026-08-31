@@ -45,3 +45,14 @@ def get_matrix_options():
         options.brightness = 100
         options.scan_mode = 0
     return options
+
+
+class_colours={
+    'HYPERCAR':0x1,
+    'LMP2':0x4,
+    'LMGT3':0x2
+}
+IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
+DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
+DISPLAY_DURATION = 20
+MAX_CARS = 4
