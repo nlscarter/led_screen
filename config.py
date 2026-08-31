@@ -22,7 +22,7 @@ api_key = "owec_e8N1kbg-lER2ZccDr6lgX1WmFmN_Gt6y"
 led_rows = 48
 led_cols = 96
 
-STATIC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "static_image.png")
+STATIC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "pub.png")
 
 try:
     from rgbmatrix import RGBMatrixOptions

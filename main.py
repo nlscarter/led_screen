@@ -1,13 +1,14 @@
 import openwec
+import os
+import threading
+import time
+from flask import Flask, request, render_template_string, redirect
 
 from assets.html import HTML_TEMPLATE
 from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISPLAY_DURATION, MAX_CARS, STATIC_IMAGE_PATH
 from engine.drawing import DummyCanvas, OrientationManager, draw_image
 from view.render_row import RenderRow
 from view.render_title import RenderTitle
-import threading
-import time
-from flask import Flask, request, render_template_string, redirect
 # ─── ENVIRONMENT DETECTOR & MOCK INTERFACE ───
 try:
     from rgbmatrix import RGBMatrix, RGBMatrixOptions
@@ -78,26 +79,10 @@ def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orienta
 
     start_time = time.time()
     while time.time() - start_time < duration:
+        if DISPLAY_MODE != "LIVE" or SCREEN_BLANKED:
+            return canvas
+
         canvas.Clear()
-
-        if DISPLAY_MODE == "BLANK" or SCREEN_BLANKED:
-            if not RUNNING_ON_HARDWARE:
-                canvas.Show()
-            else:
-                canvas = matrix.SwapOnVSync(canvas)
-
-            time.sleep(1)
-            continue
-
-        if DISPLAY_MODE == "IMAGE":
-            draw_image(canvas, orientation_mgr, STATIC_IMAGE_PATH)
-            if not RUNNING_ON_HARDWARE:
-                canvas.Show()
-            else:
-                canvas = matrix.SwapOnVSync(canvas)
-
-            time.sleep(1)
-            continue
 
         current_y = 7
         row_padding = 0
@@ -113,6 +98,8 @@ def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orienta
             canvas = matrix.SwapOnVSync(canvas)
 
         time.sleep(1)
+
+    return canvas
 
 # --- Initialize Flask App ---
 app = Flask(__name__)
@@ -184,7 +171,14 @@ def matrix_display_loop():
                     canvas.Show()
                 else:
                     canvas = matrix.SwapOnVSync(canvas)
-                time.sleep(1)
+
+                last_mtime = os.path.getmtime(STATIC_IMAGE_PATH) if os.path.exists(STATIC_IMAGE_PATH) else None
+                while DISPLAY_MODE == "IMAGE":
+                    time.sleep(0.1)
+                    if os.path.exists(STATIC_IMAGE_PATH):
+                        current_mtime = os.path.getmtime(STATIC_IMAGE_PATH)
+                        if current_mtime != last_mtime:
+                            break
                 continue
 
             if DISPLAY_MODE == "BLANK" or SCREEN_BLANKED:
@@ -193,7 +187,9 @@ def matrix_display_loop():
                     canvas.Show()
                 else:
                     canvas = matrix.SwapOnVSync(canvas)
-                time.sleep(1)
+
+                while DISPLAY_MODE == "BLANK" or SCREEN_BLANKED:
+                    time.sleep(0.1)
                 continue
 
             timestamp = time.strftime('%H:%M:%S')
@@ -218,7 +214,7 @@ def matrix_display_loop():
                 rows_data = build_rows_for_category(session=session, top_rows=top_rows, current_lap=current_lap)
 
                 # Dynamic DISPLAY_DURATION applied here
-                run_text_pattern(
+                canvas = run_text_pattern(
                     rows_data=rows_data,
                     duration=DISPLAY_DURATION,
                     matrix=matrix,
