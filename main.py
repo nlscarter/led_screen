@@ -5,7 +5,9 @@ from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISP
 from engine.drawing import DummyCanvas, OrientationManager
 from view.render_row import RenderRow
 from view.render_title import RenderTitle
-
+import threading
+import time
+from flask import Flask, request, render_template_string, redirect
 # ─── ENVIRONMENT DETECTOR & MOCK INTERFACE ───
 try:
     from rgbmatrix import RGBMatrix, RGBMatrixOptions
@@ -30,6 +32,15 @@ except ImportError:
 # ──────────────────────────────────────────────
 
 CATEGORIES = list(class_colours.keys())
+SCREEN_BLANKED = False
+
+def blank_screen():
+    global SCREEN_BLANKED
+    SCREEN_BLANKED = True
+
+def unblank_screen():
+    global SCREEN_BLANKED
+    SCREEN_BLANKED = False
 
 def build_rows_for_category(session, top_rows, current_lap):
     """Pulls laps data for top cars from openwec and builds render objects."""
@@ -44,8 +55,11 @@ def build_rows_for_category(session, top_rows, current_lap):
         rows.append(RenderRow(car_data=car_row, car_laps=car_laps, current_lap=current_lap))
     return rows
 
-def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=None, orientation_mgr=None):
+def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orientation_mgr=None):
     """Renders rows to the matrix or dummy canvas for the specified duration (seconds)."""
+    if duration is None:
+        duration = DISPLAY_DURATION
+
     if matrix is None:
         options = get_matrix_options()
         matrix = RGBMatrix(options=options)
@@ -57,6 +71,15 @@ def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=N
     start_time = time.time()
     while time.time() - start_time < duration:
         canvas.Clear()
+
+        if SCREEN_BLANKED:
+            if not RUNNING_ON_HARDWARE:
+                canvas.Show()
+            else:
+                canvas = matrix.SwapOnVSync(canvas)
+
+            time.sleep(1)
+            continue
 
         current_y = 7
         row_padding = 0
@@ -73,15 +96,6 @@ def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=N
 
         time.sleep(1)
 
-
-import threading
-import time
-from flask import Flask, request, render_template_string
-
-# --- Global Configurations (Changed Dynamically) ---
-MAX_CARS = 3
-DISPLAY_DURATION = 10
-
 # --- Initialize Flask App ---
 app = Flask(__name__)
 
@@ -90,6 +104,16 @@ def index():
     global MAX_CARS, DISPLAY_DURATION
     return render_template_string(HTML_TEMPLATE, max_cars=MAX_CARS, display_duration=DISPLAY_DURATION)
 
+@app.route("/blank", methods=["POST"])
+def blank():
+    blank_screen()
+    return redirect("/")
+
+
+@app.route("/unblank", methods=["POST"])
+def unblank():
+    unblank_screen()
+    return redirect("/")
 
 @app.route('/update', methods=['POST'])
 def update_config():
