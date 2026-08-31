@@ -152,6 +152,6 @@ class RenderRow:
         small_font(canvas, o_mgr, self.car_numbr, start_x=NUM_X, x_width=NUM_WIDTH, start_y=y_text, colour=8)
         draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos)
         small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
-        stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos, colour=11)
+        stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos)
         tiny_font(canvas, o_mgr, self.laps_delta, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
         return 10

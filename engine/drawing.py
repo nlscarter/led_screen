@@ -31,15 +31,15 @@ def horiz_line(canvas, o_mgr, car_class, start_x, start_y, length):
         if 0 <= x < o_mgr.width:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
 
-def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y, colour):
+def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y):
     """Draws a horizontal line based on a pattern of 1s and 0s, replacing the last pixel with a red dot.
 
     pixel_pattern: A list/sequence of 1s and 0s.
     color_idx: Corresponds to the 4-bit key in FONT_COLOR_MAP.
     """
     # Fetch the standard RGB values from your global map; fallback to white if missing
-    r, g, b = FONT_COLOR_MAP.get(colour, (255, 255, 255))
-    fastest_lap_rgb = (128, 0, 255)
+    r, g, b = 255, 255, 153
+    fastest_lap_rgb = (148, 0, 211)
 
     # Early exit if the line is vertically completely out of bounds
     if start_y < 0 or start_y >= o_mgr.height:
