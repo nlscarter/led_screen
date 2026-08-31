@@ -68,7 +68,7 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y, colour):
         # Otherwise, follow the normal 1/0 plotting logic
         elif val == 1:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
-def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+def _draw_font_string(canvas, o_mgr, string, start_x, x_width, start_y, font_data, colour=None, justify='left'):
     if x_width is not None:
         if justify == 'center':
             draw_x = start_x + (x_width / 2) - 1
@@ -81,7 +81,6 @@ def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, ju
         draw_x = start_x
         clip_bounds = None
 
-    font_data = font_4x7
     kerning = 1
 
     _draw_custom_string(
@@ -97,33 +96,32 @@ def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, ju
         clip_bounds=clip_bounds
     )
 
-def tiny_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
-    if x_width is not None:
-        if justify == 'center':
-            draw_x = start_x + (x_width / 2) - 1
-        elif justify == 'right':
-            draw_x = start_x + x_width - 2
-        else:
-            draw_x = start_x
-        clip_bounds = (start_x, start_x + x_width)
-    else:
-        draw_x = start_x
-        clip_bounds = None
 
-    font_data = font_3x5
-    kerning = 1
-
-    _draw_custom_string(
+def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+    _draw_font_string(
         canvas=canvas,
         o_mgr=o_mgr,
-        text=string,
-        start_x=draw_x,
+        string=string,
+        start_x=start_x,
+        x_width=x_width,
         start_y=start_y,
-        font_data=font_data,
+        font_data=font_4x7,
         colour=colour,
-        kerning=kerning,
-        justify=justify,
-        clip_bounds=clip_bounds
+        justify=justify
+    )
+
+
+def tiny_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+    _draw_font_string(
+        canvas=canvas,
+        o_mgr=o_mgr,
+        string=string,
+        start_x=start_x,
+        x_width=x_width,
+        start_y=start_y,
+        font_data=font_3x5,
+        colour=colour,
+        justify=justify
     )
 
 def flag(canvas, o_mgr, country, start_x, start_y):
