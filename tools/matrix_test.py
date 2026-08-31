@@ -14,8 +14,9 @@ def run_test_pattern():
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = "regular"
-    options.gpio_slowdown = 2
+    options.gpio_slowdown = 4
     options.drop_privileges = False
+    options.pwm_bits = 8
 
     try:
         matrix = RGBMatrix(options=options)

@@ -1,7 +1,3 @@
-import matplotlib
-matplotlib.use('TkAgg')  # Forces a single live interactive pop-up window
-from matplotlib import pyplot as plt
-
 from config import FONT_COLOR_MAP, class_colours
 from assets.graphics import FLAG_DATA, LOGO_DATA
 from assets.fonts import font_4x7, font_5x9, font_3x5
@@ -249,6 +245,13 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
 class DummyCanvas:
     def __init__(self, width: int = 96, height: int = 48):
         """Initializes a persistent interactive window."""
+
+        import matplotlib
+        matplotlib.use('TkAgg')  # Forces a single live interactive pop-up window
+        from matplotlib import pyplot as plt
+
+        self.plt = plt
+
         self.width = width
         self.height = height
         self.pixels = {}
@@ -294,12 +297,12 @@ class DummyCanvas:
                 x_coords, y_coords, color=colors, marker='s', s=10
             )
 
-        plt.title(f"LED Matrix Debugger Canvas ({self.width}x{self.height})", color='black')
+        self.plt.title(f"LED Matrix Debugger Canvas ({self.width}x{self.height})", color='black')
 
         # Force draw cycles without freezing execution threads
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-        plt.pause(0.001)
+        self.plt.pause(0.001)
 
 
 class OrientationManager:

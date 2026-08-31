@@ -1,6 +1,6 @@
-import time
 import openwec
 
+from assets.html import HTML_TEMPLATE
 from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISPLAY_DURATION, MAX_CARS
 from engine.drawing import DummyCanvas, OrientationManager
 from view.render_row import RenderRow
@@ -71,7 +71,7 @@ def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=N
         else:
             canvas = matrix.SwapOnVSync(canvas)
 
-        time.sleep(0.2)
+        time.sleep(1)
 
 
 import threading
@@ -84,33 +84,6 @@ DISPLAY_DURATION = 10
 
 # --- Initialize Flask App ---
 app = Flask(__name__)
-
-# Simple HTML Control Panel Dashboard
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEC Matrix Controller</title>
-    <style>
-        body { font-family: Arial; padding: 20px; background: #222; color: #fff; text-align: center; }
-        input { font-size: 18px; padding: 5px; width: 80px; text-align: center; margin: 10px; }
-        button { font-size: 18px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <h2>WEC Matrix Settings</h2>
-    <form action="/update" method="post">
-        <label>Max Cars to Display:</label><br>
-        <input type="number" name="max_cars" value="{{ max_cars }}"><br>
-        <label>Display Duration (Seconds):</label><br>
-        <input type="number" name="display_duration" value="{{ display_duration }}"><br>
-        <button type="submit">Update Matrix</button>
-    </form>
-</body>
-</html>
-"""
-
 
 @app.route('/')
 def index():
@@ -142,9 +115,9 @@ def matrix_display_loop():
     canvas = matrix.CreateFrameCanvas()
     canvas.Clear()
 
-    if RUNNING_ON_HARDWARE:
-        canvas = matrix.SwapOnVSync(canvas)
-        canvas.Clear()
+    #if RUNNING_ON_HARDWARE:
+    #    canvas = matrix.SwapOnVSync(canvas)
+    #    canvas.Clear()
 
     orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
     openwec.configure(api_key=api_key)

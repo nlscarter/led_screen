@@ -41,7 +41,7 @@ def get_matrix_options():
         options.hardware_mapping = "regular"
         options.gpio_slowdown = 4
         options.drop_privileges = False
-        options.pwm_bits = 11
+        options.pwm_bits = 8
         options.brightness = 100
         options.scan_mode = 0
     return options
