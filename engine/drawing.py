@@ -1,6 +1,50 @@
+import os
+from PIL import Image
+
 from config import FONT_COLOR_MAP, class_colours
 from assets.graphics import FLAG_DATA, LOGO_DATA
 from assets.fonts import font_4x7, font_5x9, font_3x5
+
+_IMAGE_CACHE = {}
+
+
+def draw_image(canvas, o_mgr, image_source):
+    """Draws a static image onto the canvas using orientation manager coordinates.
+
+    image_source: filepath (str) or PIL.Image.Image instance.
+    """
+    img = None
+    if isinstance(image_source, str):
+        if not os.path.exists(image_source):
+            return False
+        try:
+            mtime = os.path.getmtime(image_source)
+            cache_key = (image_source, mtime, o_mgr.width, o_mgr.height)
+            if cache_key in _IMAGE_CACHE:
+                img = _IMAGE_CACHE[cache_key]
+            else:
+                raw_img = Image.open(image_source).convert('RGB')
+                if raw_img.size != (o_mgr.width, o_mgr.height):
+                    img = raw_img.resize((o_mgr.width, o_mgr.height), Image.Resampling.LANCZOS)
+                else:
+                    img = raw_img
+                _IMAGE_CACHE.clear()
+                _IMAGE_CACHE[cache_key] = img
+        except Exception as e:
+            print(f"Warning: Failed to load image {image_source}: {e}")
+            return False
+    elif hasattr(image_source, 'convert'):
+        img = image_source.convert('RGB')
+        if img.size != (o_mgr.width, o_mgr.height):
+            img = img.resize((o_mgr.width, o_mgr.height), Image.Resampling.LANCZOS)
+    else:
+        return False
+
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b = img.getpixel((x, y))[:3]
+            o_mgr.set_pixel(canvas, x, y, r, g, b)
+    return True
 
 
 def horiz_line(canvas, o_mgr, car_class, start_x, start_y, length):

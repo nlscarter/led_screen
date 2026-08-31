@@ -1,3 +1,5 @@
+import os
+
 FONT_COLOR_MAP = {
     0: (0, 0, 0),  # Black (Unused/Empty space background
     1: (255, 0, 0),  # Red good
@@ -19,6 +21,8 @@ FONT_COLOR_MAP = {
 api_key = "owec_e8N1kbg-lER2ZccDr6lgX1WmFmN_Gt6y"
 led_rows = 48
 led_cols = 96
+
+STATIC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "static_image.png")
 
 try:
     from rgbmatrix import RGBMatrixOptions

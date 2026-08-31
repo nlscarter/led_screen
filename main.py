@@ -1,8 +1,8 @@
 import openwec
 
 from assets.html import HTML_TEMPLATE
-from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISPLAY_DURATION, MAX_CARS
-from engine.drawing import DummyCanvas, OrientationManager
+from config import api_key, get_matrix_options, class_colours, IS_PORTRAIT, DISPLAY_DURATION, MAX_CARS, STATIC_IMAGE_PATH
+from engine.drawing import DummyCanvas, OrientationManager, draw_image
 from view.render_row import RenderRow
 from view.render_title import RenderTitle
 import threading
@@ -32,14 +32,22 @@ except ImportError:
 # ──────────────────────────────────────────────
 
 CATEGORIES = list(class_colours.keys())
+DISPLAY_MODE = "LIVE"  # Options: "LIVE", "BLANK", "IMAGE"
 SCREEN_BLANKED = False
 
 def blank_screen():
-    global SCREEN_BLANKED
+    global DISPLAY_MODE, SCREEN_BLANKED
+    DISPLAY_MODE = "BLANK"
     SCREEN_BLANKED = True
 
 def unblank_screen():
-    global SCREEN_BLANKED
+    global DISPLAY_MODE, SCREEN_BLANKED
+    DISPLAY_MODE = "LIVE"
+    SCREEN_BLANKED = False
+
+def show_static_image():
+    global DISPLAY_MODE, SCREEN_BLANKED
+    DISPLAY_MODE = "IMAGE"
     SCREEN_BLANKED = False
 
 def build_rows_for_category(session, top_rows, current_lap):
@@ -72,7 +80,17 @@ def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orienta
     while time.time() - start_time < duration:
         canvas.Clear()
 
-        if SCREEN_BLANKED:
+        if DISPLAY_MODE == "BLANK" or SCREEN_BLANKED:
+            if not RUNNING_ON_HARDWARE:
+                canvas.Show()
+            else:
+                canvas = matrix.SwapOnVSync(canvas)
+
+            time.sleep(1)
+            continue
+
+        if DISPLAY_MODE == "IMAGE":
+            draw_image(canvas, orientation_mgr, STATIC_IMAGE_PATH)
             if not RUNNING_ON_HARDWARE:
                 canvas.Show()
             else:
@@ -115,6 +133,14 @@ def unblank():
     unblank_screen()
     return redirect("/")
 
+
+@app.route("/image", methods=["POST"])
+@app.route("/static_image", methods=["POST"])
+@app.route("/static-image", methods=["POST"])
+def image():
+    show_static_image()
+    return redirect("/")
+
 @app.route('/update', methods=['POST'])
 def update_config():
     global MAX_CARS, DISPLAY_DURATION
@@ -151,6 +177,25 @@ def matrix_display_loop():
             # Notice the references to global variables now execute dynamically inside the loop
             global MAX_CARS, DISPLAY_DURATION
 
+            if DISPLAY_MODE == "IMAGE":
+                canvas.Clear()
+                draw_image(canvas, orientation_mgr, STATIC_IMAGE_PATH)
+                if not RUNNING_ON_HARDWARE:
+                    canvas.Show()
+                else:
+                    canvas = matrix.SwapOnVSync(canvas)
+                time.sleep(1)
+                continue
+
+            if DISPLAY_MODE == "BLANK" or SCREEN_BLANKED:
+                canvas.Clear()
+                if not RUNNING_ON_HARDWARE:
+                    canvas.Show()
+                else:
+                    canvas = matrix.SwapOnVSync(canvas)
+                time.sleep(1)
+                continue
+
             timestamp = time.strftime('%H:%M:%S')
             print(f"[{timestamp}] Fetching latest WEC session data (3-minute cycle)...")
 
@@ -160,6 +205,8 @@ def matrix_display_loop():
                 0] if not results.empty and 'laps_completed' in results.columns else 0
 
             for cat_name in CATEGORIES:
+                if DISPLAY_MODE != "LIVE" or SCREEN_BLANKED:
+                    break
                 filtered_df = results[results['car_class'] == cat_name]
 
                 # Dynamic MAX_CARS applied here instantly on the next loop iteration
