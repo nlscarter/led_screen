@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 from config import FONT_COLOR_MAP, class_colours
 from assets.graphics import FLAG_DATA, LOGO_DATA
-from assets.fonts import font_4x7, font_5x9
+from assets.fonts import font_4x7, font_5x9, font_3x5
 
 
 def horiz_line(canvas, o_mgr, car_class, start_x, start_y, length):
@@ -39,6 +39,7 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y, colour):
     """
     # Fetch the standard RGB values from your global map; fallback to white if missing
     r, g, b = FONT_COLOR_MAP.get(colour, (255, 255, 255))
+    fastest_lap_rgb = (128, 0, 255)
 
     # Early exit if the line is vertically completely out of bounds
     if start_y < 0 or start_y >= o_mgr.height:
@@ -60,10 +61,13 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y, colour):
             # Force draw a red dot
             o_mgr.set_pixel(canvas, x, start_y, 255, 0, 0)
 
+        # Draw fastest lap as purple
+        elif val == 2:
+            o_mgr.set_pixel(canvas, x, start_y, *fastest_lap_rgb)
+
         # Otherwise, follow the normal 1/0 plotting logic
         elif val == 1:
             o_mgr.set_pixel(canvas, x, start_y, r, g, b)
-
 def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
     if x_width is not None:
         if justify == 'center':
@@ -93,7 +97,7 @@ def small_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, ju
         clip_bounds=clip_bounds
     )
 
-def large_font_string(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
+def tiny_font(canvas, o_mgr, string, start_x, x_width, start_y, colour=None, justify='left'):
     if x_width is not None:
         if justify == 'center':
             draw_x = start_x + (x_width / 2) - 1
@@ -106,7 +110,7 @@ def large_font_string(canvas, o_mgr, string, start_x, x_width, start_y, colour=N
         draw_x = start_x
         clip_bounds = None
 
-    font_data = font_5x9
+    font_data = font_3x5
     kerning = 1
 
     _draw_custom_string(
@@ -239,91 +243,6 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
         current_x += char_width + kerning
 
     final_width = current_x - start_x - kerning if current_x != start_x else 0
-    return final_width, 10
-
-
-def _scroll_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour, kerning, justify, frame_width=50,
-                        scroll_speed=50):
-    """Renders an entire string, tracking cumulative widths and mapping special multi-char tokens.
-
-    Supports dynamic persistent scrolling inside an active UI loop framework.
-
-    :param frame_width: Maximum horizontal pixel width available for the text.
-    :param scroll_speed: Number of pixels to shift the text per render frame.
-    """
-    text = str(text)
-
-    # 1. Define the mapping from 3-character codes to unique 1-character placeholders
-    token_map = {
-        "007": "\uE007",
-        "008": "\uE008",
-        "009": "\uE009"
-    }
-
-    # 2. Replace the 3-character substrings with their 1-character equivalents
-    processed_text = text
-    for token, single_char in token_map.items():
-        processed_text = processed_text.replace(token, single_char)
-
-    # 3. Calculate full total width of the processed text
-    total_width = 0
-    for char in processed_text:
-        actual_char = char if char in font_data else ' '
-        char_width = len(font_data.get(actual_char, []))
-        total_width += char_width + kerning
-
-    if total_width > 0:
-        total_width -= kerning  # Remove trailing kerning
-
-    # 4. Handle state-based persistent text scrolling
-    current_offset = 0
-    is_scrolling = False
-
-    if frame_width is not None and total_width > frame_width:
-        is_scrolling = True
-
-        # Determine the loop resetting threshold (Text width + padding gap)
-        loop_reset_point = total_width + 40
-
-        # Retrieve or initialize the scroll offset tracker from your manager or active row state
-        # We try to bind it to 'o_mgr' so it survives across individual render cycles
-        if not hasattr(o_mgr, '_scroll_tracker'):
-            o_mgr._scroll_tracker = 0
-
-        # Increment the persistent offset position frame-by-frame
-        o_mgr._scroll_tracker = (o_mgr._scroll_tracker + scroll_speed) % loop_reset_point
-        current_offset = int(o_mgr._scroll_tracker)
-
-    # 5. Shift the starting x position based on justification (Only if NOT scrolling)
-    if not is_scrolling and justify in ('center', 'right'):
-        if justify == 'right':
-            start_x = start_x - total_width
-        elif justify == 'center':
-            start_x = start_x - (total_width // 2)
-
-    # 6. Iterate through the processed text and draw with layout boundary clipping
-    current_x = start_x - current_offset
-
-    for char in processed_text:
-        actual_char = char if char in font_data else ' '
-        char_width = len(font_data.get(actual_char, []))
-
-        if frame_width is not None:
-            # Performance optimization: Skip rendering characters completely out of the viewport
-            if current_x + char_width < start_x or current_x > start_x + frame_width:
-                current_x += char_width + kerning
-                continue
-
-        # Draw the valid visible character chunk
-        _draw_custom_char(canvas, o_mgr, char, current_x, start_y, font_data, colour)
-        current_x += char_width + kerning
-
-    # Return total bounds width
-    if is_scrolling:
-        final_width = frame_width
-    else:
-        final_width = current_x - start_x - kerning if current_x != start_x else 0
-
     return final_width, 10
 
 

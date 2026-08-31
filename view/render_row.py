@@ -1,6 +1,6 @@
-from matplotlib.pyplot import draw_if_interactive
+import math
 
-from engine.drawing import large_font_string, class_line, horiz_line, small_font, draw_logo_, stint_line
+from engine.drawing import tiny_font, class_line, horiz_line, small_font, draw_logo_, stint_line
 
 POS_X = 0
 POS_WIDTH = 13
@@ -20,7 +20,7 @@ LAPS_WIDTH = 15
 class RenderRow:
     """Renders a single car telemetry row on the LED matrix."""
 
-    def __init__(self, car_data=None, car_laps=None, num=None):
+    def __init__(self, car_data=None, car_laps=None, num=None, current_lap=None):
         if hasattr(car_data, 'to_dict'):
             data = car_data.to_dict()
         elif isinstance(car_data, dict):
@@ -40,6 +40,11 @@ class RenderRow:
         self.gap_to_first = str(data.get('gap_to_first_s', ''))
         self.fast_lap_num = str(data.get('fl_lap_number', ''))
         self.fl_time = str(data.get('fl_time_s', ''))
+        self.laps_delta = self.get_laps_behind(
+            current_lap=current_lap,
+            laps_completed=self.laps,
+            gap_to_first=self.gap_to_first
+        )
 
         self.car_laps = car_laps
         self.stint = self.get_stint()
@@ -87,10 +92,56 @@ class RenderRow:
     def stint_pixels(self):
         if self.stint is None or (hasattr(self.stint, 'empty') and self.stint.empty):
             return []
+
         df = self.stint.copy()
-        if 'crossing_finish_in_pit' in df.columns:
-            return (~df['crossing_finish_in_pit']).astype(int).tolist()
-        return []
+
+        if 'crossing_finish_in_pit' not in df.columns:
+            return []
+
+        pixel_pattern = (~df['crossing_finish_in_pit']).astype(int).tolist()
+
+        try:
+            fastest_lap_num = int(float(self.fast_lap_num))
+        except (TypeError, ValueError):
+            return pixel_pattern
+
+        lap_number_column = None
+        for column_name in ('lap_number', 'number', 'lap'):
+            if column_name in df.columns:
+                lap_number_column = column_name
+                break
+
+        if lap_number_column is None:
+            return pixel_pattern
+
+        for index, lap_number in enumerate(df[lap_number_column]):
+            try:
+                if int(float(lap_number)) == fastest_lap_num:
+                    pixel_pattern[index] = 2
+                    break
+            except (TypeError, ValueError):
+                continue
+
+        return pixel_pattern
+
+    def get_laps_behind(self, current_lap, laps_completed, gap_to_first):
+        try:
+            laps_behind = int(current_lap) - int(laps_completed)
+        except (TypeError, ValueError):
+            return "-"
+
+        if laps_behind <= 0:
+            try:
+                gap_seconds = float(gap_to_first)
+            except (TypeError, ValueError):
+                return "-"
+
+            if math.isnan(gap_seconds):
+                return f'{current_lap}'
+
+            return f'{gap_seconds:.1f}'
+
+        return f'+{laps_behind}l'
 
     def render(self, canvas, o_mgr, y_pos):
         y_text = y_pos - 2
@@ -102,5 +153,5 @@ class RenderRow:
         draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos)
         small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
         stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos, colour=11)
-        small_font(canvas, o_mgr, self.laps, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
+        tiny_font(canvas, o_mgr, self.laps_delta, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
         return 10

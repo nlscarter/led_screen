@@ -41,7 +41,7 @@ def build_rows_for_category(session, top_rows, current_lap):
         except Exception as e:
             print(f"Warning: Failed to fetch laps for car {car_num}: {e}")
             car_laps = None
-        rows.append(RenderRow(car_data=car_row, car_laps=car_laps))
+        rows.append(RenderRow(car_data=car_row, car_laps=car_laps, current_lap=current_lap))
     return rows
 
 
