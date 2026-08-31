@@ -286,9 +286,6 @@ def _draw_custom_string(canvas, o_mgr, text, start_x, start_y, font_data, colour
     return final_width, 10
 
 
-from engine.matrix import DummyCanvas
-
-
 class OrientationManager:
     """Handles layout dimensions and pixel transformations based on rotation state."""
 
