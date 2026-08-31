@@ -38,8 +38,9 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y):
     color_idx: Corresponds to the 4-bit key in FONT_COLOR_MAP.
     """
     # Fetch the standard RGB values from your global map; fallback to white if missing
-    r, g, b = 255, 255, 153
-    fastest_lap_rgb = (148, 0, 211)
+    normal_lap_rgb = (255, 255, 125)
+    fastest_lap_rgb = (148, 0, 255)
+    last_pixel_rgb = (255, 0, 0)
 
     # Early exit if the line is vertically completely out of bounds
     if start_y < 0 or start_y >= o_mgr.height:
@@ -59,7 +60,7 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y):
         # Check if this is the absolute last item in the list
         if i == total_pixels - 1:
             # Force draw a red dot
-            o_mgr.set_pixel(canvas, x, start_y, 255, 0, 0)
+            o_mgr.set_pixel(canvas, x, start_y, *last_pixel_rgb)
 
         # Draw fastest lap as purple
         elif val == 2:
@@ -67,7 +68,8 @@ def stint_line(canvas, o_mgr, pixel_pattern, start_x, start_y):
 
         # Otherwise, follow the normal 1/0 plotting logic
         elif val == 1:
-            o_mgr.set_pixel(canvas, x, start_y, r, g, b)
+            o_mgr.set_pixel(canvas, x, start_y, *normal_lap_rgb)
+
 def _draw_font_string(canvas, o_mgr, string, start_x, x_width, start_y, font_data, colour=None, justify='left'):
     if x_width is not None:
         if justify == 'center':
