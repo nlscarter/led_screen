@@ -1,4 +1,5 @@
 import os
+from engine.matrix import RGBMatrixOptions, RUNNING_ON_HARDWARE
 
 FONT_COLOR_MAP = {
     0: (0, 0, 0),  # Black (Unused/Empty space background
@@ -18,20 +19,27 @@ FONT_COLOR_MAP = {
     14: (255, 146, 40),  # Orange
     15: (255, 255, 255),  # White
 }
+
+class_colours = {
+    'HYPERCAR': 0x1,
+    'LMP2': 0x4,
+    'LMGT3': 0x2
+}
+
 api_key = "owec_e8N1kbg-lER2ZccDr6lgX1WmFmN_Gt6y"
 led_rows = 48
 led_cols = 96
+IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
+DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
+DISPLAY_DURATION = 20
+MAX_CARS = 4
 
 STATIC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "pub.png")
 
-try:
-    from rgbmatrix import RGBMatrixOptions
-    _HAS_HARDWARE = True
+_HAS_HARDWARE = RUNNING_ON_HARDWARE
+if _HAS_HARDWARE:
     print('running on RPi4')
-except ImportError:
-    class RGBMatrixOptions:
-        pass
-    _HAS_HARDWARE = False
+else:
     print('running on LAPTOP')
 
 
@@ -49,14 +57,3 @@ def get_matrix_options():
         options.brightness = 100
         options.scan_mode = 0
     return options
-
-
-class_colours={
-    'HYPERCAR':0x1,
-    'LMP2':0x4,
-    'LMGT3':0x2
-}
-IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
-DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
-DISPLAY_DURATION = 20
-MAX_CARS = 4

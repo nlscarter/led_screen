@@ -137,7 +137,7 @@ class RenderRow:
                 return "-"
 
             if math.isnan(gap_seconds):
-                return f'{current_lap}'
+                return 'LEAD'
 
             return f'{gap_seconds:.1f}'
 
@@ -150,7 +150,7 @@ class RenderRow:
         class_line(canvas, o_mgr, self.car_class, start_x=CLASS_LINE_X, start_y=y_pos)
         horiz_line(canvas, o_mgr, self.car_class, start_x=UNDERLINE_X, start_y=y_pos, length=UNDERLINE_LEN)
         small_font(canvas, o_mgr, self.car_numbr, start_x=NUM_X, x_width=NUM_WIDTH, start_y=y_text, colour=8)
-        draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos)
+        draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos-1)
         small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
         stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos)
         tiny_font(canvas, o_mgr, self.laps_delta, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
