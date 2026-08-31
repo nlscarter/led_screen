@@ -44,53 +44,6 @@ def build_rows_for_category(session, top_rows, current_lap):
         rows.append(RenderRow(car_data=car_row, car_laps=car_laps, current_lap=current_lap))
     return rows
 
-
-def main():
-    options = get_matrix_options()
-    matrix = RGBMatrix(options=options)
-    canvas = matrix.CreateFrameCanvas()
-    canvas.Clear()
-
-    if RUNNING_ON_HARDWARE:
-        canvas = matrix.SwapOnVSync(canvas)
-        canvas.Clear()
-
-    orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
-    openwec.configure(api_key=api_key)
-
-    try:
-        while True:
-            timestamp = time.strftime('%H:%M:%S')
-            print(f"[{timestamp}] Fetching latest WEC session data (3-minute cycle)...")
-            session = openwec.Session("WEC", 2026, "Le Mans", "Race")
-            print(session)
-            results = session.results()
-            current_lap = results['laps_completed'].iloc[0] if not results.empty and 'laps_completed' in results.columns else 0
-
-            # Run pattern 3 times across the 3 categories
-            for cat_name in CATEGORIES:
-                filtered_df = results[results['car_class'] == cat_name]
-                top_rows = filtered_df[:MAX_CARS]
-                car_numbers = top_rows['car_number'].dropna().astype(str).tolist()
-
-                print(f"[{time.strftime('%H:%M:%S')}] Fetching laps & displaying {cat_name}... {car_numbers}")
-                
-                rows_data = build_rows_for_category(session=session, top_rows=top_rows, current_lap=current_lap)
-                
-                run_text_pattern(
-                    rows_data=rows_data,
-                    duration=DISPLAY_DURATION,
-                    matrix=matrix,
-                    canvas=canvas,
-                    orientation_mgr=orientation_mgr
-                )
-
-    except KeyboardInterrupt:
-        print("\nStopping display loop. Clearing screen...")
-        canvas.Clear()
-        if RUNNING_ON_HARDWARE:
-            matrix.SwapOnVSync(canvas)
-
 def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=None, orientation_mgr=None):
     """Renders rows to the matrix or dummy canvas for the specified duration (seconds)."""
     if matrix is None:
@@ -119,6 +72,130 @@ def run_text_pattern(rows_data, duration=DISPLAY_DURATION, matrix=None, canvas=N
             canvas = matrix.SwapOnVSync(canvas)
 
         time.sleep(0.2)
+
+
+import threading
+import time
+from flask import Flask, request, render_template_string
+
+# --- Global Configurations (Changed Dynamically) ---
+MAX_CARS = 3
+DISPLAY_DURATION = 10
+
+# --- Initialize Flask App ---
+app = Flask(__name__)
+
+# Simple HTML Control Panel Dashboard
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEC Matrix Controller</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #222; color: #fff; text-align: center; }
+        input { font-size: 18px; padding: 5px; width: 80px; text-align: center; margin: 10px; }
+        button { font-size: 18px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>WEC Matrix Settings</h2>
+    <form action="/update" method="post">
+        <label>Max Cars to Display:</label><br>
+        <input type="number" name="max_cars" value="{{ max_cars }}"><br>
+        <label>Display Duration (Seconds):</label><br>
+        <input type="number" name="display_duration" value="{{ display_duration }}"><br>
+        <button type="submit">Update Matrix</button>
+    </form>
+</body>
+</html>
+"""
+
+
+@app.route('/')
+def index():
+    global MAX_CARS, DISPLAY_DURATION
+    return render_template_string(HTML_TEMPLATE, max_cars=MAX_CARS, display_duration=DISPLAY_DURATION)
+
+
+@app.route('/update', methods=['POST'])
+def update_config():
+    global MAX_CARS, DISPLAY_DURATION
+    try:
+        MAX_CARS = int(request.form.get('max_cars', MAX_CARS))
+        DISPLAY_DURATION = int(request.form.get('display_duration', DISPLAY_DURATION))
+        print(f"[*] Configuration Updated -> MAX_CARS: {MAX_CARS}, DURATION: {DISPLAY_DURATION}")
+    except ValueError:
+        pass
+    return render_template_string(HTML_TEMPLATE, max_cars=MAX_CARS, display_duration=DISPLAY_DURATION)
+
+
+def run_flask_server():
+    # Runs the web server on port 5000 accessible to anyone on the local network
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+
+
+# --- Your Original Logic Wrapped into a Thread Loop ---
+def matrix_display_loop():
+    options = get_matrix_options()
+    matrix = RGBMatrix(options=options)
+    canvas = matrix.CreateFrameCanvas()
+    canvas.Clear()
+
+    if RUNNING_ON_HARDWARE:
+        canvas = matrix.SwapOnVSync(canvas)
+        canvas.Clear()
+
+    orientation_mgr = OrientationManager(matrix, portrait_mode=IS_PORTRAIT)
+    openwec.configure(api_key=api_key)
+
+    try:
+        while True:
+            # Notice the references to global variables now execute dynamically inside the loop
+            global MAX_CARS, DISPLAY_DURATION
+
+            timestamp = time.strftime('%H:%M:%S')
+            print(f"[{timestamp}] Fetching latest WEC session data (3-minute cycle)...")
+
+            session = openwec.Session("WEC", 2026, "Le Mans", "Race")
+            results = session.results()
+            current_lap = results['laps_completed'].iloc[
+                0] if not results.empty and 'laps_completed' in results.columns else 0
+
+            for cat_name in CATEGORIES:
+                filtered_df = results[results['car_class'] == cat_name]
+
+                # Dynamic MAX_CARS applied here instantly on the next loop iteration
+                top_rows = filtered_df[:MAX_CARS]
+                car_numbers = top_rows['car_number'].dropna().astype(str).tolist()
+
+                print(f"[{time.strftime('%H:%M:%S')}] Fetching laps & displaying {cat_name}... {car_numbers}")
+
+                rows_data = build_rows_for_category(session=session, top_rows=top_rows, current_lap=current_lap)
+
+                # Dynamic DISPLAY_DURATION applied here
+                run_text_pattern(
+                    rows_data=rows_data,
+                    duration=DISPLAY_DURATION,
+                    matrix=matrix,
+                    canvas=canvas,
+                    orientation_mgr=orientation_mgr
+                )
+    except KeyboardInterrupt:
+        print("\nStopping display loop. Clearing screen...")
+        canvas.Clear()
+        if RUNNING_ON_HARDWARE:
+            matrix.SwapOnVSync(canvas)
+
+
+def main():
+    # 1. Start the Flask server in the background
+    server_thread = threading.Thread(target=run_flask_server, daemon=True)
+    server_thread.start()
+
+    # 2. Run the main matrix engine in the foreground
+    matrix_display_loop()
+
 
 if __name__ == "__main__":
     main()
