@@ -1,4 +1,4 @@
-DISPLAY_MODE = "LIVE"  # Options: "LIVE", "BLANK", "IMAGE"
+DISPLAY_MODE = "LIVE"  # Options: "LIVE", "BLANK", "PUB", "PSC"
 SCREEN_BLANKED = False
 
 
@@ -14,7 +14,14 @@ def unblank_screen():
     SCREEN_BLANKED = False
 
 
-def show_static_image():
+def show_pub_image():
     global DISPLAY_MODE, SCREEN_BLANKED
-    DISPLAY_MODE = "IMAGE"
+    DISPLAY_MODE = "PUB"
     SCREEN_BLANKED = False
+
+
+def show_psc_image():
+    global DISPLAY_MODE, SCREEN_BLANKED
+    DISPLAY_MODE = "PSC"
+    SCREEN_BLANKED = False
+

@@ -2,7 +2,7 @@ from flask import Flask, request, render_template_string, redirect
 
 from assets.html import HTML_TEMPLATE
 import config
-from engine.state import blank_screen, unblank_screen, show_static_image
+from engine.state import blank_screen, unblank_screen, show_pub_image, show_psc_image
 
 app = Flask(__name__)
 
@@ -24,11 +24,15 @@ def unblank():
     return redirect("/")
 
 
-@app.route("/image", methods=["POST"])
-@app.route("/static_image", methods=["POST"])
-@app.route("/static-image", methods=["POST"])
-def image():
-    show_static_image()
+@app.route("/pub", methods=["POST"])
+def pub():
+    show_pub_image()
+    return redirect("/")
+
+
+@app.route("/psc", methods=["POST"])
+def psc():
+    show_psc_image()
     return redirect("/")
 
 

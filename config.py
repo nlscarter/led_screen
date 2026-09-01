@@ -34,7 +34,8 @@ DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
 DISPLAY_DURATION = 20
 MAX_CARS = 4
 
-STATIC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "pub.png")
+PUB_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "pub.png")
+PSC_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "psc.png")
 
 _HAS_HARDWARE = RUNNING_ON_HARDWARE
 if _HAS_HARDWARE:

@@ -12,7 +12,8 @@ from engine.state import (
     SCREEN_BLANKED,
     blank_screen,
     unblank_screen,
-    show_static_image,
+    show_pub_image,
+    show_psc_image,
 )
 import engine.state as state
 from server import app, run_flask_server
@@ -32,19 +33,22 @@ def matrix_display_loop():
 
     try:
         while True:
-            if state.DISPLAY_MODE == "IMAGE":
+            if state.DISPLAY_MODE in ("PUB", "PSC", "pub", "psc"):
+                mode = state.DISPLAY_MODE.upper()
+                image_path = config.PUB_IMAGE_PATH if mode == "PUB" else config.PSC_IMAGE_PATH
+
                 canvas.Clear()
-                draw_image(canvas, orientation_mgr, config.STATIC_IMAGE_PATH)
+                draw_image(canvas, orientation_mgr, image_path)
                 if not RUNNING_ON_HARDWARE:
                     canvas.Show()
                 else:
                     canvas = matrix.SwapOnVSync(canvas)
 
-                last_mtime = os.path.getmtime(config.STATIC_IMAGE_PATH) if os.path.exists(config.STATIC_IMAGE_PATH) else None
-                while state.DISPLAY_MODE == "IMAGE":
+                last_mtime = os.path.getmtime(image_path) if os.path.exists(image_path) else None
+                while state.DISPLAY_MODE.upper() == mode:
                     time.sleep(0.1)
-                    if os.path.exists(config.STATIC_IMAGE_PATH):
-                        current_mtime = os.path.getmtime(config.STATIC_IMAGE_PATH)
+                    if os.path.exists(image_path):
+                        current_mtime = os.path.getmtime(image_path)
                         if current_mtime != last_mtime:
                             break
                 continue
