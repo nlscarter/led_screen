@@ -6,7 +6,7 @@ import openwec
 import config
 from engine.drawing import OrientationManager, draw_image
 from engine.matrix import RGBMatrix, RUNNING_ON_HARDWARE
-from engine.renderer import run_text_pattern
+from engine.renderer import draw_rows
 from engine.state import (
     DISPLAY_MODE,
     SCREEN_BLANKED,
@@ -82,9 +82,9 @@ def matrix_display_loop():
 
                 print(f"[{time.strftime('%H:%M:%S')}] Fetching laps & displaying {cat_name}... {car_numbers}")
 
-                rows_data = build_rows_for_category(session=session, top_rows=top_rows, current_lap=current_lap)
+                rows_data = build_rows_for_category(session=session, car_rows=top_rows, current_lap=current_lap)
 
-                canvas = run_text_pattern(
+                canvas = draw_rows(
                     rows_data=rows_data,
                     duration=config.DISPLAY_DURATION,
                     matrix=matrix,

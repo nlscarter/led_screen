@@ -154,4 +154,5 @@ class RenderRow:
         small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
         stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos)
         tiny_font(canvas, o_mgr, self.laps_delta, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
+        print(self.team_name)
         return 10

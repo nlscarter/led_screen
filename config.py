@@ -8,17 +8,18 @@ FONT_COLOR_MAP = {
     3: (123, 61, 0),  # Brown ok
     4: (0, 0, 255),  # Dark Blue / Navy
     5: (128, 0, 0),  # Dark Red / Maroon
-    6: (116, 250, 82),  # Lime
+    6: (255, 100, 180),  # Pink
     7: (50, 50, 50),  # Dark Charcoal / Off-Black
     8: (150, 150, 150),  # Gray
     9: (224, 29, 111),  # Coral / Pinkish Red
     10: (0, 255, 128),  # Light Mint Green
     11: (255, 255, 0),  # Pale Yellow
-    12: (100, 100, 255),  # Light Blue / Lavender
+    12: (110, 110, 255),  # Light Blue / Lavender
     13: (128, 255, 255),  # Baby Blue
     14: (255, 146, 40),  # Orange
     15: (255, 255, 255),  # White
 }
+#    6: (116, 250, 82),  # Lime
 
 class_colours = {
     'HYPERCAR': 0x1,

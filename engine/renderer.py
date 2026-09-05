@@ -6,7 +6,7 @@ from engine.matrix import RGBMatrix, RUNNING_ON_HARDWARE
 import engine.state as state
 
 
-def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orientation_mgr=None):
+def draw_rows(rows_data, duration=None, matrix=None, canvas=None, orientation_mgr=None):
     """Renders rows to the matrix or dummy canvas for the specified duration (seconds)."""
     if duration is None:
         duration = config.DISPLAY_DURATION
@@ -39,6 +39,6 @@ def run_text_pattern(rows_data, duration=None, matrix=None, canvas=None, orienta
         else:
             canvas = matrix.SwapOnVSync(canvas)
 
-        time.sleep(1)
+        time.sleep(0.95)
 
     return canvas
