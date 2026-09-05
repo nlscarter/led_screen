@@ -1,5 +1,5 @@
-from view.render_row import RenderRow
-from view.render_title import RenderTitle
+from renders.render_row import RenderRow
+from renders.render_title import RenderTitle
 
 
 def build_rows_for_category(session, car_rows, current_lap):

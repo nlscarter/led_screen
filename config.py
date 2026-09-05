@@ -32,7 +32,7 @@ led_rows = 48
 led_cols = 96
 IS_PORTRAIT = False  # Set to True for Portrait (48x96), False for Landscape (96x48)
 DATA_FETCH_INTERVAL = 180  # Fetch fresh data every 3 minutes (180s)
-DISPLAY_DURATION = 20
+DISPLAY_DURATION = 5
 MAX_CARS = 4
 
 PUB_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "assets", "pub.png")

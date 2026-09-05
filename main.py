@@ -91,6 +91,25 @@ def matrix_display_loop():
                     canvas=canvas,
                     orientation_mgr=orientation_mgr
                 )
+
+            # Loop through the entire field 4 cars at a time without filtering on car_class
+            for i in range(0, len(results), config.MAX_CARS):
+                if state.DISPLAY_MODE != "LIVE" or state.SCREEN_BLANKED:
+                    break
+                field_rows = results.iloc[i:i + config.MAX_CARS]
+                car_numbers = field_rows['car_number'].dropna().astype(str).tolist()
+
+                print(f"[{time.strftime('%H:%M:%S')}] Fetching laps & displaying field ({i + 1}-{i + len(field_rows)})... {car_numbers}")
+
+                rows_data = build_rows_for_category(session=session, car_rows=field_rows, current_lap=current_lap)
+
+                canvas = draw_rows(
+                    rows_data=rows_data,
+                    duration=config.DISPLAY_DURATION,
+                    matrix=matrix,
+                    canvas=canvas,
+                    orientation_mgr=orientation_mgr
+                )
     except KeyboardInterrupt:
         print("\nStopping display loop. Clearing screen...")
         canvas.Clear()

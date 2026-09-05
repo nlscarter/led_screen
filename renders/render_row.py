@@ -33,7 +33,8 @@ class RenderRow:
         self.car_class = str(data.get('car_class', ''))
         self.team_name = str(data.get('team', ''))
         self.laps = str(data.get('laps_completed', '0'))
-        self.vehicle = str(data.get('vehicle', ''))
+        vehicle_parts = str(data.get('vehicle', '')).split()
+        self.vehicle = vehicle_parts[0].lower() if vehicle_parts else ''
         self.tyre = str(data.get('tyre_supplier', ''))
         self.status = str(data.get('status', ''))
         self.time = str(data.get('total_time_s', ''))
@@ -150,9 +151,8 @@ class RenderRow:
         class_line(canvas, o_mgr, self.car_class, start_x=CLASS_LINE_X, start_y=y_pos)
         horiz_line(canvas, o_mgr, self.car_class, start_x=UNDERLINE_X, start_y=y_pos, length=UNDERLINE_LEN)
         small_font(canvas, o_mgr, self.car_numbr, start_x=NUM_X, x_width=NUM_WIDTH, start_y=y_text, colour=8)
-        draw_logo_(canvas, o_mgr, self.team_name, start_x=LOGO_X, start_y=y_pos-1)
+        draw_logo_(canvas, o_mgr, self.vehicle, start_x=LOGO_X, start_y=y_pos-1)
         small_font(canvas, o_mgr, self.c_fullname, start_x=NAME_X, x_width=NAME_WIDTH, start_y=y_text)
         stint_line(canvas, o_mgr, self.stint_list, start_x=STINT_X, start_y=y_pos)
         tiny_font(canvas, o_mgr, self.laps_delta, start_x=LAPS_X, x_width=LAPS_WIDTH, start_y=y_text, colour=8)
-        print(self.team_name)
         return 10
