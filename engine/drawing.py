@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 from config import FONT_COLOR_MAP, class_colours
-from assets.graphics import FLAG_DATA, LOGO_DATA
+from assets.graphics import FLAG_DATA, LOGO_DATA, CIRCUIT, SECTORS
 from assets.fonts import font_4x7, font_5x9, font_3x5
 
 _IMAGE_CACHE = {}
@@ -314,5 +314,74 @@ class OrientationManager:
             canvas.SetPixel(y, x, r, g, b)
         else:
             canvas.SetPixel(x, y, r, g, b)
+
+
+def draw_circuit(canvas, o_mgr=None, circuit=None, color=(200, 200, 200)):
+    """Plots the circuit shape coordinates onto the canvas in (200, 200, 200) by default."""
+    if circuit is None:
+        circuit = CIRCUIT
+
+    r, g, b = color
+    for coord in circuit:
+        x, y = coord
+        if o_mgr is not None:
+            o_mgr.set_pixel(canvas, x, y, r, g, b)
+        elif hasattr(canvas, 'SetPixel'):
+            canvas.SetPixel(x, y, r, g, b)
+        elif hasattr(canvas, 'set_pixel'):
+            canvas.set_pixel(x, y, r, g, b)
+
+
+plot_circuit = draw_circuit
+
+
+def plot_sector(canvas=None, o_mgr=None, n=0, sectors=None, circuit=None, color=(255, 255, 0)):
+    """Given a number n, takes n and n+1 from SECTORS and plots the respective circuit coordinates in yellow."""
+    if isinstance(canvas, (int, float)) and not isinstance(canvas, bool):
+        actual_n = int(canvas)
+        actual_canvas = o_mgr
+        actual_omgr = n if isinstance(n, OrientationManager) or (n is not None and not isinstance(n, (int, float, list, tuple, set, dict))) else None
+    elif isinstance(o_mgr, (int, float)) and not isinstance(o_mgr, bool):
+        actual_n = int(o_mgr)
+        actual_canvas = canvas
+        actual_omgr = None
+    else:
+        actual_n = int(n) if n is not None else 0
+        actual_canvas = canvas
+        actual_omgr = o_mgr
+
+    if sectors is None:
+        sectors = SECTORS
+    if circuit is None:
+        circuit = CIRCUIT
+
+    sectors_list = list(sectors)
+    circuit_list = list(circuit)
+
+    if not (0 <= actual_n < len(sectors_list) - 1):
+        return
+
+    start_idx = sectors_list[actual_n]
+    end_idx = sectors_list[actual_n + 1]
+
+    if start_idx > end_idx:
+        start_idx, end_idx = end_idx, start_idx
+
+    coords = circuit_list[start_idx:end_idx + 1]
+
+    r, g, b = color
+    for coord in coords:
+        x, y = coord
+        if actual_omgr is not None:
+            actual_omgr.set_pixel(actual_canvas, x, y, r, g, b)
+        elif hasattr(actual_canvas, 'SetPixel'):
+            actual_canvas.SetPixel(x, y, r, g, b)
+        elif hasattr(actual_canvas, 'set_pixel'):
+            actual_canvas.set_pixel(x, y, r, g, b)
+
+
+draw_sector = plot_sector
+plot_circuit_sector = plot_sector
+draw_circuit_sector = plot_sector
 
 

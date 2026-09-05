@@ -6,7 +6,7 @@ import openwec
 import config
 from engine.drawing import OrientationManager, draw_image
 from engine.matrix import RGBMatrix, RUNNING_ON_HARDWARE
-from engine.renderer import draw_rows
+from engine.renderer import draw_rows, draw_circuit_view
 from engine.state import (
     DISPLAY_MODE,
     SCREEN_BLANKED,
@@ -91,6 +91,16 @@ def matrix_display_loop():
                     canvas=canvas,
                     orientation_mgr=orientation_mgr
                 )
+                # Draw circuit and display slow zones
+            if state.DISPLAY_MODE == "LIVE" and not state.SCREEN_BLANKED:
+                print(f"[{time.strftime('%H:%M:%S')}] Displaying circuit...")
+                canvas = draw_circuit_view(
+                    duration=config.DISPLAY_DURATION,
+                    matrix=matrix,
+                    canvas=canvas,
+                    orientation_mgr=orientation_mgr,
+                    sector_index=5
+                )
 
             # Loop through the entire field 4 cars at a time without filtering on car_class
             for i in range(0, len(results), config.MAX_CARS):
@@ -110,6 +120,7 @@ def matrix_display_loop():
                     canvas=canvas,
                     orientation_mgr=orientation_mgr
                 )
+
     except KeyboardInterrupt:
         print("\nStopping display loop. Clearing screen...")
         canvas.Clear()
